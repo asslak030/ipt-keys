@@ -1,7 +1,10 @@
-import { error } from "console";
 import type { NextRequest } from "next/server";
 import { insertKey, listKeys, revokeKey } from "~/server/key";
 import { CreateKeySchema, DeleteKeySchema } from "~/server/validation";
+import { auth } from "@clerk/nextjs/server";
+import { eq, desc } from "drizzle-orm";
+import { apiKeys } from "~/server/db/schema";
+import { db } from "~/server/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,14 +21,27 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const rows = await listKeys();
+  const session = await auth();
+  if (!session.userId) {
+    return Response.json({ error: "Unauthorized access" }, { status: 401 });
+  }
+  const userId = session.userId;
+
+  const rows = await db
+    .select()
+    .from(apiKeys)
+    .where(eq(apiKeys.userId, userId))
+    .orderBy(desc(apiKeys.createdAt));
+
   const items = rows.map((k) => ({
     id: k.id,
+    userId: k.userId,
     name: k.name,
     masked: `sk_live_...${k.last4}`,
     createdAt: k.createdAt,
     revoked: k.revoked,
   }));
+
   return Response.json({ items });
 }
 

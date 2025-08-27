@@ -189,7 +189,7 @@ export default function DashboardPage() {
                     <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 opacity-20 blur-md"></div>
                     <div className="relative overflow-hidden rounded-2xl">
                       <img
-                        src="https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUycG01NGsxOXUzem8yZTJoeWN5dXlpc2lhMGxnZW0zeGwzeWlldzltMCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/7x3PHPSMXSONHFuOK4/source.gif"
+                        src="https://i.pinimg.com/originals/63/fe/24/63fe24d4c052e81630459c64fc2f8c84.gif"
                         alt="Security Illustration"
                         className="h-40 w-40 object-cover transition-transform duration-500 hover:scale-110"
                       />
@@ -200,8 +200,8 @@ export default function DashboardPage() {
                 <div className="border-t border-gray-700/50 bg-gray-800/30 p-4">
                   <p className="text-sm text-gray-400">
                     <strong className="text-indigo-300">Tip:</strong> Keep your
-                    keys private, rotate them regularly, and revoke or rename
-                    them anytime for added security.
+                    keys private, rotate them regularly, and revoke them anytime
+                    for added security.
                   </p>
                 </div>
               </CardContent>

@@ -14,6 +14,7 @@ export const createTable = pgTableCreator((name) => `ipt-keys_${name}`);
 
 export const apiKeys = createTable("api_keys", (d) => ({
   id: d.text("id").primaryKey(),
+  userId: d.varchar("user_id", { length: 255 }).notNull(), 
   name: d.varchar({ length: 256 }).notNull(),
   hashedKey: d.text("hashed_key").notNull(),
   last4: d.varchar("last4", {length: 4}).notNull(),

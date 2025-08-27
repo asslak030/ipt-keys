@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-[#1e1c2a] text-white">
+      <body className="bg-gradient-to-br from-gray-900 to-gray-950 text-white">
         <ClerkProvider
           afterSignInUrl="/dashboard"
           afterSignOutUrl="/"

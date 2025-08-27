@@ -198,13 +198,13 @@ export default function Page() {
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 md:grid-cols-4">
           <div className="text-center">
             <div className="text-3xl font-bold text-indigo-400 md:text-4xl">
-              10K+
+              3+
             </div>
             <div className="text-sm text-gray-400">Developers</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-purple-400 md:text-4xl">
-              2M+
+              100+
             </div>
             <div className="text-sm text-gray-400">API Keys</div>
           </div>
@@ -216,7 +216,7 @@ export default function Page() {
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-green-400 md:text-4xl">
-              24/7
+              Nonstop
             </div>
             <div className="text-sm text-gray-400">Support</div>
           </div>

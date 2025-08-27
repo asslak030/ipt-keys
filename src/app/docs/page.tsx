@@ -63,10 +63,13 @@ export default function DocsPage() {
               </div>
               <h2 className="text-2xl font-bold text-white">Documentation</h2>
             </div>
-            <p className="text-gray-300">
-              This is where your API documentation would be displayed. The
-              design of the top toolbar now matches the dashboard page for a
-              consistent user experience.
+            <p>
+              Welcome to{" "}
+              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                KeyVault
+              </span>{" "}
+              API documentation. Learn how to create, manage, and use your API
+              keys securely.
             </p>
           </motion.div>
         </div>

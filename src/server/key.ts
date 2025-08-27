@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { apiKeys } from "./db/schema";
 import { db } from "./db";
 import { desc, eq } from "drizzle-orm";
-import type { NextRequest } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 const KEY_PREFIX = process.env.KEY_PREFIX ?? "sk_live_";
 
@@ -18,21 +18,30 @@ export function sha256(data: string) {
 }
 
 export async function insertKey(name: string) {
+  const session = await auth();
+  if (!session.userId) {
+    throw new Error("Unauthorized: No user logged in");
+  }
+
+  const userId = session.userId;
+
   const { key, last4 } = generatePlainKey();
   const hashed = sha256(key);
   const id = crypto.randomUUID();
 
-  await db.insert(apiKeys).values({ id, name, hashedKey: hashed, last4 });
+  await db.insert(apiKeys).values({
+    id,
+    userId,
+    name,
+    hashedKey: hashed,
+    last4,
+  });
+
   return { id, name, key, last4 } as const;
 }
 
 export async function listKeys() {
   return db.select().from(apiKeys).orderBy(desc(apiKeys.createdAt));
-  //   return db
-  //     .select()
-  //     .from(apiKeys)
-  //     .where(eq(apiKeys.revoked, false))
-  //     .orderBy(desc(apiKeys.createdAt));
 }
 
 export async function revokeKey(id: string) {

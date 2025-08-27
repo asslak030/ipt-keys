@@ -18,9 +18,70 @@ import { Separator } from "~/components/ui/separator";
 import { Badge } from "~/components/ui/badge";
 import Link from "next/link";
 import AuthGuard from "../component/AuthGuard";
+import { useEffect, useState } from "react";
+
+type KeyItem = {
+  id: string;
+  name: string;
+  masked: string;
+  createdAt: number | string;
+  revoked: boolean;
+};
 
 export default function DashboardPage() {
-  const sampleApiKey = "abcd-123-efgh";
+  const [name, setName] = useState("My API Key");
+  const [justCreated, setjustCreated] = useState<{
+    key: string;
+    id: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState<KeyItem[]>([]);
+
+  async function createKey() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setjustCreated({
+          key: data.key,
+          id: data.id,
+        });
+        await load();
+      } else {
+        alert(data.error ?? "Something went wrong");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function load() {
+    const res = await fetch("/api/keys", { cache: "no-store" });
+    const data = await res.json();
+    setItems(data.items ?? []);
+  }
+
+  async function revokeKey(id: string) {
+    const res = await fetch(`/api/keys?keyId=${id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error ?? "Something went wrong");
+    }
+    await load();
+  }
+
+  useEffect(() => {
+    load();
+  }, [createKey, revokeKey]);
 
   return (
     <AuthGuard>
@@ -49,6 +110,8 @@ export default function DashboardPage() {
             <Button
               className="flex items-center gap-2"
               aria-label="Create API Key"
+              onClick={createKey}
+              disabled={loading}
             >
               <Plus /> Create
             </Button>
@@ -58,22 +121,26 @@ export default function DashboardPage() {
               <Input
                 placeholder="Enter API Key Name"
                 aria-label="API Key Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
 
-            {/* Should not show if no API Keys exist */}
-            <div className="rounded-md border p-3">
-              <p className="text-sm font-medium">
-                Here is your API Key (visible once):
-              </p>
-              <div className="mt-2 flex items-center gap-2">
-                <code className="text-sm break-all">{sampleApiKey}</code>
-                <CopyButton value={sampleApiKey} />
+            {justCreated && (
+              <div className="rounded-md border p-3">
+                <p className="text-sm font-medium">
+                  Here is your API Key (visible once):
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <code className="text-sm break-all">{justCreated.key}</code>
+                  <CopyButton value={justCreated.key} />
+                </div>
+                <p className="text-muted-foreground mt-2 text-xs">
+                  Save this key securely. You won&apos;t be able to see it
+                  again.
+                </p>
               </div>
-              <p className="text-muted-foreground mt-2 text-xs">
-                Save this key securely. You won&apos;t be able to see it again.
-              </p>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -94,19 +161,42 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>Name of Key</TableCell>
-                  <TableCell className="font-mono">{sampleApiKey}</TableCell>
-                  <TableCell>8/25/2025</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">Revoked</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="destructive" size="sm">
-                      Revoke
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                {items.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.name}</TableCell>
+                    <TableCell className="font-mono">{row.masked}</TableCell>
+                    <TableCell>
+                      {new Date(row.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {row.revoked ? (
+                        <Badge variant="secondary">Revoked</Badge>
+                      ) : (
+                        <Badge>Active</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={row.revoked}
+                        onClick={() => revokeKey(row.id)}
+                      >
+                        Revoke
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {items.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="text-muted-foreground text-center text-sm"
+                    >
+                      No API keys found.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -115,8 +205,8 @@ export default function DashboardPage() {
         <Separator />
 
         <p>
-          Tip: Call secured endpoints with the <code>{sampleApiKey}</code>{" "}
-          header. See{" "}
+          Tip: Call secured endpoints with the <code>x-api-key</code> header.
+          See{" "}
           <Link className="underline" href="/docs">
             Docs
           </Link>

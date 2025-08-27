@@ -15,6 +15,8 @@ export const createTable = pgTableCreator((name) => `ipt-keys_${name}`);
 export const apiKeys = createTable("api_keys", (d) => ({
   id: d.text("id").primaryKey(),
   name: d.varchar({ length: 256 }).notNull(),
+  hashedKey: d.text("hashed_key").notNull(),
+  last4: d.varchar("last4", {length: 4}).notNull(),
   createdAt: d
     .timestamp({ withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)

@@ -21,6 +21,5 @@ export const apiKeys = createTable("api_keys", (d) => ({
     .timestamp({ withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
-  updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   revoked: d.boolean("revoked").notNull().default(false),
 }));

@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import "../styles/globals.css";
+import { Toaster } from "sonner";
 
 export const metadata = {
   title: "Key Vault",
@@ -14,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-[#000000] text-white">
+      <body className="bg-[#1e1c2a] text-white">
         <ClerkProvider
           afterSignInUrl="/dashboard"
           afterSignOutUrl="/"
@@ -24,6 +25,7 @@ export default function RootLayout({
         >
           {children}
         </ClerkProvider>
+        <Toaster richColors position="bottom-right" />
       </body>
     </html>
   );

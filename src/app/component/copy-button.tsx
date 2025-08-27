@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { toast } from "sonner";
 
 type Props = { value: string; arialLabel?: string };
 
@@ -19,6 +20,7 @@ export default function CopyButton({
       onClick={async () => {
         await navigator.clipboard.writeText(value);
         setOk(true);
+        toast.success("Copied to clipboard!");
         setTimeout(() => setOk(false), 2000);
       }}
       aria-label={arialLabel}

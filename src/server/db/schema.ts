@@ -31,7 +31,6 @@ export const items = createTable("items", (d) => ({
   role: d.varchar("role", { length: 100 }).notNull(),
   pickRate: d.numeric("pick_rate", { precision: 5, scale: 2 }).notNull(),
   ownerId: d.varchar("owner_id", { length: 255 }).notNull(),
-  // Add the required fields from the exam
   title: d.varchar("title", { length: 255 }),
   description: d.text("description"),
   category: d.varchar("category", { length: 100 }),
@@ -45,9 +44,3 @@ export const items = createTable("items", (d) => ({
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 }));
-
-// Export types
-export type ApiKey = typeof apiKeys.$inferSelect;
-export type NewApiKey = typeof apiKeys.$inferInsert;
-export type Item = typeof items.$inferSelect;
-export type NewItem = typeof items.$inferInsert;

@@ -4,14 +4,10 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import {
   BookOpen,
   Plus,
-  Shield,
   XCircle,
   Key,
   Calendar,
-  Sparkles,
   Sword,
-  Trophy,
-  Skull,
   Zap,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -24,7 +20,6 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import CopyButton from "../component/copy-button";
-import { Separator } from "~/components/ui/separator";
 import { Badge } from "~/components/ui/badge";
 import Link from "next/link";
 import AuthGuard from "../component/AuthGuard";

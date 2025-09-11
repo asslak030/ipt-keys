@@ -4,7 +4,7 @@ import "../styles/globals.css";
 import { Toaster } from "sonner";
 
 export const metadata = {
-  title: "Hero Pedia API Key Manager",
+  title: "HeroPedia API Key Manager",
   description: "Securely store and manage your API keys",
 };
 

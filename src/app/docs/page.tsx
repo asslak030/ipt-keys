@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { KeyRound, Shield, BookOpen } from "lucide-react";
+import { KeyRound, Shield, BookOpen, Sword, Zap } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import AuthGuard from "../component/AuthGuard";
@@ -47,21 +47,21 @@ export default function DocsPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#1a243a] to-[#2c3e50] px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-8">
           {/* Top Toolbar - Enhanced Design */}
           <motion.header
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center justify-between rounded-2xl bg-gray-800/50 p-4 backdrop-blur-sm"
+            className="flex items-center justify-between rounded-2xl border border-[#3a506b] bg-[#122036]/80 p-4 backdrop-blur-sm"
           >
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-indigo-500/10 p-2">
-                <Shield className="h-6 w-6 text-indigo-400" />
+              <div className="rounded-xl bg-[#ff0058]/20 p-2">
+                <Sword className="h-6 w-6 text-[#ff0058]" />
               </div>
-              <h1 className="text-2xl font-bold text-white sm:text-3xl">
-                Key Vault
+              <h1 className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] bg-clip-text text-2xl font-bold text-white sm:text-3xl">
+                BattlePedia
               </h1>
             </div>
 
@@ -69,13 +69,13 @@ export default function DocsPage() {
               <Link href="/dashboard">
                 <Button
                   variant="outline"
-                  className="flex items-center gap-2 border-indigo-400/30 bg-indigo-500/10 text-indigo-300 transition-all hover:scale-105 hover:bg-indigo-500/20"
+                  className="flex items-center gap-2 border-[#ff7a00]/30 bg-[#ff7a00]/10 text-[#ff7a00] transition-all hover:scale-105 hover:bg-[#ff7a00]/20"
                   aria-label="Go to Dashboard"
                 >
-                  <KeyRound className="h-4 w-4" /> Dashboard
+                  <KeyRound className="h-4 w-4" /> Command Center
                 </Button>
               </Link>
-              <div className="rounded-full bg-gray-700/50 p-1">
+              <div className="rounded-full border border-[#3a506b] bg-[#122036] p-1">
                 <UserButton
                   appearance={{
                     elements: {
@@ -92,48 +92,47 @@ export default function DocsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-2xl bg-gray-800/50 p-8 backdrop-blur-sm"
+            className="rounded-2xl border border-[#3a506b] bg-[#122036]/80 p-8 backdrop-blur-sm"
           >
             <div className="mb-6 flex items-center gap-3">
-              <div className="rounded-lg bg-indigo-500/10 p-2">
-                <BookOpen className="h-6 w-6 text-indigo-400" />
+              <div className="rounded-lg bg-[#ff0058]/20 p-2">
+                <BookOpen className="h-6 w-6 text-[#ff0058]" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Documentation</h2>
+              <h2 className="text-2xl font-bold text-white">Battle Guide</h2>
             </div>
-            <p>
+            <p className="text-gray-300">
               Welcome to{" "}
-              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                KeyVault
+              <span className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] bg-clip-text text-transparent">
+                BattlePedia
               </span>{" "}
-              API documentation. Learn how to create, manage, and use your API
-              keys securely.
+              API documentation. Learn how to forge, command, and deploy your
+              battle keys.
             </p>
           </motion.div>
         </div>
 
         <div className="mx-auto mt-8 grid max-w-6xl gap-8 md:grid-cols-3">
           {/* How Authentication Works Card */}
-          <Card className="rounded-2xl border border-indigo-500/20 bg-gray-800/50 shadow-lg backdrop-blur-sm md:col-span-2">
+          <Card className="rounded-2xl border border-[#3a506b] bg-[#122036]/80 shadow-lg backdrop-blur-sm md:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
-                <KeyRound className="h-5 w-5 text-indigo-400" />
-                How Authentication Works
+                <Shield className="h-5 w-5 text-[#ff0058]" />
+                Battle Key Deployment
               </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-4 text-gray-300">
               <p>
                 Authenticate using the{" "}
-                <code className="text-indigo-400">x-api-key</code> header. Create
-                a key in <code className="text-indigo-400">/keys</code> and store
-                it securely.
+                <code className="text-[#ff7a00]">x-api-key</code> header. Forge
+                a key in the command center and guard it like a true warrior.
               </p>
 
-              <Separator className="bg-indigo-500/20" />
+              <Separator className="bg-[#ff0058]/20" />
 
               <div>
-                <h3 className="font-semibold text-white">BASE URL</h3>
-                <pre className="overflow-x-auto rounded-lg bg-gray-900/70 p-3 text-sm text-indigo-300">
+                <h3 className="font-semibold text-white">BATTLEGROUND URL</h3>
+                <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
                   <code>{baseUrl + "/api"}</code>
                 </pre>
               </div>
@@ -143,11 +142,11 @@ export default function DocsPage() {
                 <div className="space-y-3">
                   <h3 className="font-semibold text-white">GET /api/ping</h3>
 
-                  <pre className="overflow-x-auto rounded-lg bg-gray-900/70 p-3 text-sm text-indigo-300">
+                  <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
                     <code>{`curl -H 'x-api-key: <YOUR KEY>' ${baseUrl}/api/ping`}</code>
                   </pre>
 
-                  <pre className="overflow-x-auto rounded-lg bg-gray-900/70 p-3 text-sm text-indigo-300">
+                  <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
                     <code>{`const r = await fetch('${baseUrl}/api/ping', {
   headers: { 'x-api-key': process.env.MY_KEY! }
 });`}</code>
@@ -158,23 +157,27 @@ export default function DocsPage() {
                 <div className="space-y-3">
                   <h3 className="font-semibold text-white">POST /api/echo</h3>
 
-                  <pre className="overflow-x-auto rounded-lg bg-gray-900/70 p-3 text-sm text-indigo-300">
-                    <code>{`curl -X POST \\
-  -H 'x-api-key: <YOUR KEY>' \\
-  -H 'Content-Type: application/json' \\
-  -d '{"hello": "world"}' \\
-  ${baseUrl}/api/echo`}</code>
+                  <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
+                    <code>
+                      {`curl -X POST \\
+                      -H 'x-api-key: <YOUR KEY>' \\
+                      -H 'Content-Type: application/json' \\
+                      -d '{"hello": "world"}' \\
+                      ${baseUrl}/api/echo`}
+                    </code>
                   </pre>
 
-                  <pre className="overflow-x-auto rounded-lg bg-gray-900/70 p-3 text-sm text-indigo-300">
-                    <code>{`const r = await fetch(\`${baseUrl}/api/echo\`, {
-  method: 'POST',
-  headers: {
-    'x-api-key': process.env.MY_KEY!,
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ hello: 'world' }),
-});`}</code>
+                  <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
+                    <code>
+                      {`const r = await fetch(\`${baseUrl}/api/echo\`, {
+                        method: 'POST',
+                        headers: {
+                          'x-api-key': process.env.MY_KEY!,
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ hello: 'world' }),
+                      });`}
+                    </code>
                   </pre>
                 </div>
               </div>
@@ -182,18 +185,18 @@ export default function DocsPage() {
           </Card>
 
           {/* Interactive Tester Card */}
-          <Card className="rounded-2xl border border-indigo-500/20 bg-gray-800/50 shadow-lg backdrop-blur-sm h-full">
+          <Card className="h-full rounded-2xl border border-[#ff0058]/20 bg-[#122036]/80 shadow-lg backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
-                Interactive Tester
+                Battle Simulator
               </CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-4">
               {/* API Key Input */}
               <Input
-                placeholder="Paste your API key (sk...)"
-                className="bg-gray-900/70 text-white"
+                placeholder="Paste your battle key (sk...)"
+                className="border-[#3a506b] bg-[#1a243a] text-white"
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
               />
@@ -201,15 +204,15 @@ export default function DocsPage() {
               {/* Buttons */}
               <div className="flex flex-wrap gap-2">
                 <Button
-                  className="bg-indigo-600 text-white hover:bg-indigo-700"
+                  className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] text-white hover:from-[#ff0058] hover:to-[#ff7a00] hover:shadow-[#ff0058]/30"
                   onClick={runGET}
                 >
                   Test GET /api/ping
                 </Button>
                 <Button
                   variant="secondary"
+                  className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] text-white hover:from-[#ff0058] hover:to-[#ff7a00] hover:shadow-[#ff0058]/30"
                   onClick={runPOST}
-                  className="bg-purple-600 text-white hover:bg-purple-700"
                 >
                   Test POST /api/echo
                 </Button>
@@ -218,25 +221,25 @@ export default function DocsPage() {
               {/* POST Body Input */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-300">
-                  POST body (JSON)
+                  Battle Command (JSON)
                 </Label>
                 <Textarea
-                  className="bg-gray-900/70 text-white"
+                  className="border-[#3a506b] bg-[#1a243a] text-white"
                   rows={5}
                   value={postBody}
                   onChange={(e) => setPostBody(e.target.value)}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-300">
-                  Response
+                  Battle Report
                 </Label>
-                <Textarea 
-                  className="bg-gray-900/70 text-white font-mono text-sm"
-                  rows={10} 
-                  readOnly 
-                  value={out} 
+                <Textarea
+                  className="border-[#3a506b] bg-[#1a243a] font-mono text-sm text-white"
+                  rows={10}
+                  readOnly
+                  value={out}
                 />
               </div>
             </CardContent>

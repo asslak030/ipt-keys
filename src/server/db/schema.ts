@@ -14,13 +14,40 @@ export const createTable = pgTableCreator((name) => `ipt-keys_${name}`);
 
 export const apiKeys = createTable("api_keys", (d) => ({
   id: d.text("id").primaryKey(),
-  userId: d.varchar("user_id", { length: 255 }).notNull(), 
+  userId: d.varchar("user_id", { length: 255 }).notNull(),
   name: d.varchar({ length: 256 }).notNull(),
   hashedKey: d.text("hashed_key").notNull(),
-  last4: d.varchar("last4", {length: 4}).notNull(),
+  last4: d.varchar("last4", { length: 4 }).notNull(),
   createdAt: d
     .timestamp({ withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
   revoked: d.boolean("revoked").notNull().default(false),
 }));
+
+export const items = createTable("items", (d) => ({
+  id: d.text("id").primaryKey(),
+  heroName: d.varchar("hero_name", { length: 255 }).notNull(),
+  role: d.varchar("role", { length: 100 }).notNull(),
+  pickRate: d.numeric("pick_rate", { precision: 5, scale: 2 }).notNull(),
+  ownerId: d.varchar("owner_id", { length: 255 }).notNull(),
+  // Add the required fields from the exam
+  title: d.varchar("title", { length: 255 }),
+  description: d.text("description"),
+  category: d.varchar("category", { length: 100 }),
+  imageUrl: d.text("image_url"),
+  createdAt: d
+    .timestamp({ withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: d
+    .timestamp({ withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+}));
+
+// Export types
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
+export type Item = typeof items.$inferSelect;
+export type NewItem = typeof items.$inferInsert;

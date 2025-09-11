@@ -9,6 +9,10 @@ import {
   Key,
   Calendar,
   Sparkles,
+  Sword,
+  Trophy,
+  Skull,
+  Zap,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -76,11 +80,11 @@ export default function DashboardPage() {
 
       if (res.ok) {
         setjustCreated({ key: data.key, id: data.id });
-        toast.success("New API key created successfully!");
+        toast.success("New API key forged successfully!");
         setName("");
         setOpen(false);
         await load();
-      } else toast.error(data.error ?? "Something went wrong");
+      } else toast.error(data.error ?? "Battle failed. Try again!");
     } finally {
       setLoading(false);
     }
@@ -106,21 +110,21 @@ export default function DashboardPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#1a243a] to-[#2c3e50] px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-8">
           {/* Header */}
           <motion.header
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center justify-between rounded-2xl bg-gray-800/50 p-4 backdrop-blur-sm"
+            className="flex items-center justify-between rounded-2xl border border-[#3a506b] bg-[#122036]/80 p-4 backdrop-blur-sm"
           >
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-indigo-500/10 p-2">
-                <Shield className="h-6 w-6 text-indigo-400" />
+              <div className="rounded-xl bg-[#ff0058]/20 p-2">
+                <Sword className="h-6 w-6 text-[#ff0058]" />
               </div>
-              <h1 className="text-2xl font-bold text-white sm:text-3xl">
-                Key Vault
+              <h1 className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] bg-clip-text text-2xl font-bold text-white sm:text-3xl">
+                BattlePedia
               </h1>
             </div>
 
@@ -128,13 +132,13 @@ export default function DashboardPage() {
               <Link href="/docs">
                 <Button
                   variant="outline"
-                  className="flex items-center gap-2 border-indigo-400/30 bg-indigo-500/10 text-indigo-300 transition-all hover:scale-105 hover:bg-indigo-500/20"
+                  className="flex items-center gap-2 border-[#ff7a00]/30 bg-[#ff7a00]/10 text-[#ff7a00] transition-all hover:scale-105 hover:bg-[#ff7a00]/20"
                   aria-label="View Documentation"
                 >
-                  <BookOpen className="h-4 w-4" /> Docs
+                  <BookOpen className="h-4 w-4" /> Battle Guide
                 </Button>
               </Link>
-              <div className="rounded-full bg-gray-700/50 p-1">
+              <div className="rounded-full border border-[#3a506b] bg-[#122036]/80 p-1">
                 <UserButton
                   appearance={{
                     elements: {
@@ -152,32 +156,32 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <Card className="overflow-hidden border-0 bg-gradient-to-br from-gray-800 to-gray-900 shadow-2xl">
+            <Card className="overflow-hidden border-0 border-[#3a506b] bg-gradient-to-br from-[#122036] to-[#1a243a] shadow-2xl">
               <CardContent className="p-0">
                 <div className="flex flex-col items-start gap-6 p-6 md:flex-row md:items-center">
                   <div className="flex-1 space-y-4">
                     <div>
                       <h2 className="text-2xl font-bold text-white">
                         Welcome back,{" "}
-                        <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                          {user?.firstName || "User"}!
+                        <span className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] bg-clip-text text-transparent">
+                          {user?.firstName || "Commander"}!
                         </span>
                       </h2>
                       <p className="mt-2 text-gray-300">
-                        Manage your API keys securely and integrate them with
-                        your apps safely.
+                        Command your API keys securely and deploy them with the
+                        strength of a legend.
                       </p>
                     </div>
 
                     <div className="flex gap-4">
-                      <div className="flex items-center gap-2 rounded-lg bg-gray-700/50 px-3 py-2">
-                        <Key className="h-4 w-4 text-indigo-400" />
+                      <div className="flex items-center gap-2 rounded-lg border border-[#3a506b] bg-[#122036] px-3 py-2">
+                        <Key className="h-4 w-4 text-[#ff0058]" />
                         <span className="text-sm text-gray-300">
-                          {items.length} API Keys
+                          {items.length} Battle Keys
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 rounded-lg bg-gray-700/50 px-3 py-2">
-                        <Sparkles className="h-4 w-4 text-purple-400" />
+                      <div className="flex items-center gap-2 rounded-lg border border-[#3a506b] bg-[#122036] px-3 py-2">
+                        <Zap className="h-4 w-4 text-[#ff7a00]" />
                         <span className="text-sm text-gray-300">
                           {items.filter((i) => !i.revoked).length} Active
                         </span>
@@ -185,23 +189,26 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="relative">
-                    <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 opacity-20 blur-md"></div>
-                    <div className="relative overflow-hidden rounded-2xl">
+                  <div className="relative flex items-center justify-center">
+                    {/* Gradient Glow */}
+                    <div className="absolute -inset-6 z-0 rounded-full bg-gradient-to-r from-[#ff0058] to-[#ff7a00] opacity-30 blur-xl"></div>
+
+                    {/* GIF Container */}
+                    <div className="relative z-10 overflow-hidden rounded-2xl shadow-lg ring-2 ring-white/10">
                       <img
-                        src="https://i.pinimg.com/originals/63/fe/24/63fe24d4c052e81630459c64fc2f8c84.gif"
-                        alt="Security Illustration"
-                        className="h-40 w-40 object-cover transition-transform duration-500 hover:scale-110"
+                        src="https://media.tenor.com/OgK2aaOhiPkAAAAi/ml.gif"
+                        alt="Battle Illustration"
+                        className="h-44 w-44 object-cover transition-transform duration-500 hover:scale-110"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-700/50 bg-gray-800/30 p-4">
+                <div className="border-t border-[#3a506b] bg-[#122036]/80 p-4">
                   <p className="text-sm text-gray-400">
-                    <strong className="text-indigo-300">Tip:</strong> Keep your
-                    keys private, rotate them regularly, and revoke them anytime
-                    for added security.
+                    <strong className="text-[#ff7a00]">Battle Tip:</strong>{" "}
+                    Guard your keys like a true warrior, rotate them regularly,
+                    and revoke them when not in use.
                   </p>
                 </div>
               </CardContent>
@@ -214,55 +221,55 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Card className="border-0 bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl">
+            <Card className="border-0 border-[#3a506b] bg-gradient-to-br from-[#122036] to-[#1a243a] shadow-xl">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-lg font-semibold text-white">
-                      Generate API Key
+                      Forge Battle Key
                     </CardTitle>
                     <CardDescription className="text-gray-400">
-                      Create a new key to access our API services
+                      Create a new key to access our battle API
                     </CardDescription>
                   </div>
                   <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                       <Button
-                        className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all hover:from-indigo-600 hover:to-purple-600 hover:shadow-lg"
+                        className="flex items-center gap-2 bg-gradient-to-r from-[#ff0058] to-[#ff7a00] transition-all hover:from-[#ff0058] hover:to-[#ff7a00] hover:shadow-lg hover:shadow-[#ff0058]/30"
                         aria-label="Create API Key"
                       >
-                        <Plus className="h-4 w-4" /> Create Key
+                        <Plus className="h-4 w-4" /> Forge Key
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="border-0 bg-gray-800 text-white sm:max-w-md">
+                    <DialogContent className="border-0 border-[#3a506b] bg-[#122036] text-white sm:max-w-md">
                       <DialogHeader>
                         <DialogTitle className="text-white">
-                          Create New API Key
+                          Forge New Battle Key
                         </DialogTitle>
                         <DialogDescription className="text-gray-400">
-                          Provide a descriptive name for your new API key
+                          Provide a name for your new battle key
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-3 py-2">
                         <Input
-                          placeholder="e.g., Production Server"
+                          placeholder="e.g., Battle Server"
                           aria-label="API Key Name"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="border-gray-600 bg-gray-700/50 text-white placeholder:text-gray-400"
+                          className="border-[#3a506b] bg-[#1a243a] text-white placeholder:text-gray-400"
                         />
                       </div>
                       <DialogFooter>
                         <Button
                           onClick={createKey}
                           disabled={loading}
-                          className="bg-gradient-to-r from-indigo-500 to-purple-500 transition-all hover:from-indigo-600 hover:to-purple-600"
+                          className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] transition-all hover:from-[#ff0058] hover:to-[#ff7a00] hover:shadow-[#ff0058]/30"
                         >
                           {loading ? (
-                            "Creating..."
+                            "Forging..."
                           ) : (
                             <>
-                              <Plus className="h-4 w-4" /> Create Key
+                              <Plus className="h-4 w-4" /> Forge Key
                             </>
                           )}
                         </Button>
@@ -279,23 +286,23 @@ export default function DashboardPage() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4 shadow-inner"
+                      className="rounded-xl border border-[#ff0058]/30 bg-[#ff0058]/10 p-4 shadow-inner"
                     >
                       <div className="flex items-center gap-2">
-                        <Key className="h-5 w-5 text-indigo-400" />
-                        <p className="text-sm font-medium text-indigo-300">
-                          Your new API Key
+                        <Key className="h-5 w-5 text-[#ff0058]" />
+                        <p className="text-sm font-medium text-[#ff0058]">
+                          Your new Battle Key
                         </p>
                       </div>
-                      <div className="mt-3 flex items-center gap-2 rounded-lg bg-gray-900/50 p-3">
+                      <div className="mt-3 flex items-center gap-2 rounded-lg border border-[#3a506b] bg-[#1a243a] p-3">
                         <code className="flex-1 text-sm break-all text-gray-200">
                           {justCreated.key}
                         </code>
                         <CopyButton value={justCreated.key} />
                       </div>
                       <p className="mt-3 text-xs text-gray-400">
-                        ⚠️ Save this key securely. You won't be able to see it
-                        again.
+                        ⚔️ Secure this key like a legendary weapon. You won't
+                        see it again.
                       </p>
                     </motion.div>
                   )}
@@ -310,20 +317,20 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Card className="border-0 bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl">
-              <CardHeader className="border-b border-gray-700/50 pb-4">
+            <Card className="border-0 border-[#3a506b] bg-gradient-to-br from-[#122036] to-[#1a243a] shadow-xl">
+              <CardHeader className="border-b border-[#3a506b] pb-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-lg font-semibold text-white">
-                      Your API Keys
+                      Your Battle Keys
                     </CardTitle>
                     <CardDescription className="text-gray-400">
-                      Manage and monitor your active API keys
+                      Command and control your active battle keys
                     </CardDescription>
                   </div>
                   <Badge
                     variant="outline"
-                    className="bg-gray-700/50 text-gray-300"
+                    className="border-[#3a506b] bg-[#122036] text-gray-300"
                   >
                     {items.filter((i) => !i.revoked).length} Active
                   </Badge>
@@ -346,7 +353,7 @@ export default function DashboardPage() {
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.9 }}
                           whileHover={{ y: -5 }}
-                          className="flex flex-col justify-between rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 shadow-lg transition-all"
+                          className="flex flex-col justify-between rounded-xl border border-[#3a506b] bg-[#122036]/60 p-4 shadow-lg transition-all"
                         >
                           <div className="space-y-4">
                             <div className="flex items-start justify-between">
@@ -356,15 +363,15 @@ export default function DashboardPage() {
                               <Badge
                                 className={`rounded-full px-2 py-1 text-xs ${
                                   row.revoked
-                                    ? "bg-red-500/20 text-red-400"
-                                    : "bg-emerald-500/20 text-emerald-400"
+                                    ? "bg-[#ff0058]/20 text-[#ff0058]"
+                                    : "bg-[#00ff8c]/20 text-[#00ff8c]"
                                 }`}
                               >
                                 {row.revoked ? "Revoked" : "Active"}
                               </Badge>
                             </div>
 
-                            <div className="rounded-lg bg-gray-900/50 p-3">
+                            <div className="rounded-lg border border-[#3a506b] bg-[#1a243a] p-3">
                               <code className="text-sm break-all text-gray-300">
                                 {row.masked}
                               </code>
@@ -373,7 +380,7 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-2 text-xs text-gray-400">
                               <Calendar className="h-3 w-3" />
                               <span>
-                                Created:{" "}
+                                Forged:{" "}
                                 {new Date(row.createdAt).toLocaleDateString(
                                   "en-US",
                                   {
@@ -392,10 +399,10 @@ export default function DashboardPage() {
                               size="sm"
                               disabled={row.revoked}
                               onClick={() => revokeKey(row.id)}
-                              className="gap-2 transition-all hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                              className="gap-2 bg-[#ff0058] transition-all hover:bg-[#ff0058]/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <XCircle className="h-4 w-4" />
-                              Revoke
+                              Revoked
                             </Button>
                           </div>
                         </motion.div>
@@ -408,14 +415,14 @@ export default function DashboardPage() {
                       exit={{ opacity: 0 }}
                       className="flex flex-col items-center justify-center py-12 text-center"
                     >
-                      <div className="rounded-full bg-gray-700/50 p-4">
-                        <Key className="h-8 w-8 text-gray-500" />
+                      <div className="rounded-full border border-[#3a506b] bg-[#122036] p-4">
+                        <Sword className="h-8 w-8 text-gray-500" />
                       </div>
                       <h3 className="mt-4 text-lg font-medium text-white">
-                        No API keys yet
+                        No battle keys yet
                       </h3>
                       <p className="mt-2 text-sm text-gray-400">
-                        Get started by creating your first API key
+                        Begin your journey by forging your first battle key
                       </p>
                     </motion.div>
                   )}
@@ -429,19 +436,19 @@ export default function DashboardPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="rounded-2xl bg-gray-800/50 p-4 backdrop-blur-sm"
+            className="rounded-2xl border border-[#3a506b] bg-[#122036]/80 p-4 backdrop-blur-sm"
           >
             <p className="text-center text-sm text-gray-400">
-              Tip: Call secured endpoints with the{" "}
-              <code className="rounded-lg bg-gray-700/50 px-2 py-1 text-indigo-300">
+              Battle Tip: Call secured endpoints with the{" "}
+              <code className="rounded-lg border border-[#3a506b] bg-[#1a243a] px-2 py-1 text-[#ff7a00]">
                 x-api-key
               </code>{" "}
               header.{" "}
               <Link
-                className="text-indigo-400 underline hover:text-indigo-300"
+                className="text-[#ff7a00] underline hover:text-[#ff0058]"
                 href="/docs"
               >
-                View Documentation
+                View Battle Guide
               </Link>
             </p>
           </motion.div>

@@ -21,7 +21,7 @@ const baseUrl =
 export default function DocsPage() {
   const [key, setKey] = useState("");
   const [out, setOut] = useState("");
-  const [postBody, setPostBody] = useState("Hello Tester!");
+  const [postBody, setPostBody] = useState("Fanny");
 
   async function runGET() {
     const res = await fetch(`${baseUrl}/api/ping`, {

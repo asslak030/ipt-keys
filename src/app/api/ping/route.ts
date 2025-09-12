@@ -1,4 +1,6 @@
 import type { NextRequest } from "next/server";
+import { db } from "~/server/db";
+import { heroes } from "~/server/db/schema";
 import { verifyKey } from "~/server/key";
 
 export async function GET(req: NextRequest) {
@@ -10,8 +12,11 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: result.reason }, { status: 401 });
   }
 
+    // Fetch all data from the table
+  const allData = await db.select().from(heroes);
+
   return Response.json(
-    { ok: true, message: "Hello GET", keyId: result.keyId },
+    { ok: true, message: "Hello GET", keyId: result.keyId, data: allData },
     { status: 200 },
   );
 }

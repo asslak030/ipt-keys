@@ -24,3 +24,15 @@ export const apiKeys = createTable("api_keys", (d) => ({
     .notNull(),
   revoked: d.boolean("revoked").notNull().default(false),
 }));
+
+export const heroes = createTable(
+  "heroes",
+  (d) => ({
+    id: d.serial("id").primaryKey(), // Auto-incrementing ID
+    heroName: d.varchar("hero_name", { length: 255 }).notNull(),
+    role: d.varchar("role", { length: 100 }).notNull(),
+    pickRate: d.numeric("pick_rate", { precision: 5, scale: 2 }).notNull(), // e.g. 52.35%
+    description: d.text("description").notNull(),
+    heroImage: d.varchar("hero_image", { length: 512 }), // Optional image URL
+  }),
+);

@@ -1,32 +1,59 @@
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyKey } from "~/server/key";
+import { ilike } from "drizzle-orm";
+import { db } from "~/server/db";
+import { heroes } from "~/server/db/schema";
 
 export async function POST(req: NextRequest) {
-  // Get API key from headers
   const apiKey = req.headers.get("x-api-key") ?? "";
-
-  // Verify key
   const result = await verifyKey(apiKey);
 
   if (!result.valid) {
+    return Response.json({ error: result.reason }, { status: 401 });
+  }
+
+  const body = await req.json();
+
+  if (!body || !body.postBody) {
     return Response.json(
-      { error: result.reason },
-      { status: 401 }
+      { error: "Invalid request body. input is required." },
+      { status: 400 },
     );
   }
 
-  // Parse request body
-  const body = await req.json();
-  // const body = await req.json().catch(() => ({}));
+  try {
+    const getHero = await db
+      .select({
+        id: heroes.id,
+        heroName: heroes.heroName,
+        role: heroes.role,
+        pickRate: heroes.pickRate,
+        description: heroes.description,
+        heroImage: heroes.heroImage,
+      })
+      .from(heroes)
+      .where(ilike(heroes.heroName, `%${body.postBody}%`));
 
-  // Success response
-  return Response.json(
-    {
-      ok: true,
-      message: "Hello POST",
-      received: body,
-      keyId: result.keyId,
-    },
-    { status: 200 }
-  );
+    if (getHero.length === 0) {
+      return Response.json(
+        { error: "No hero found with the given name." },
+        { status: 404 },
+      );
+    }
+
+    return Response.json(
+      {
+        ok: true,
+        message: "Hero found successfully.",
+        hero: getHero[0],
+        keyId: result.keyId,
+      },
+      { status: 200 },
+    );
+  } catch (error: any) {
+    return Response.json(
+      { error: error.message ?? "Failed to fetch hero." },
+      { status: 500 },
+    );
+  }
 }

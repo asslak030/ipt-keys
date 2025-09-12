@@ -3,6 +3,7 @@
 
 import { sql } from "drizzle-orm";
 import { index, pgTableCreator } from "drizzle-orm/pg-core";
+import { createId } from "@paralleldrive/cuid2";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -25,22 +26,26 @@ export const apiKeys = createTable("api_keys", (d) => ({
   revoked: d.boolean("revoked").notNull().default(false),
 }));
 
-export const items = createTable("items", (d) => ({
-  id: d.text("id").primaryKey(),
-  heroName: d.varchar("hero_name", { length: 255 }).notNull(),
-  role: d.varchar("role", { length: 100 }).notNull(),
-  pickRate: d.numeric("pick_rate", { precision: 5, scale: 2 }).notNull(),
-  ownerId: d.varchar("owner_id", { length: 255 }).notNull(),
-  title: d.varchar("title", { length: 255 }),
-  description: d.text("description"),
-  category: d.varchar("category", { length: 100 }),
-  imageUrl: d.text("image_url"),
-  createdAt: d
-    .timestamp({ withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: d
-    .timestamp({ withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-}));
+export const items = createTable(
+  "items",
+  (d) => ({
+    id: d.text("id").primaryKey().$defaultFn(() => createId()),
+    title: d.varchar("title", { length: 255 }).notNull(),
+    description: d.text("description").notNull(),
+    category: d.varchar("category", { length: 100 }).notNull(),
+    imageUrl: d.text("image_url").notNull(),
+    ownerId: d.varchar("owner_id", { length: 255 }).notNull(),
+    createdAt: d
+      .timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: d
+      .timestamp("updated_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  }),
+  (table) => ({
+    categoryIdx: index("items_category_idx").on(table.category),
+    ownerIdx: index("items_owner_idx").on(table.ownerId),
+  })
+);

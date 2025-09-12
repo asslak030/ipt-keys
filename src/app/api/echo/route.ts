@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     {
       ok: true,
       message: "Hello POST",
-      recieved: body,
+      received: body,
       keyId: result.keyId,
     },
     { status: 200 }

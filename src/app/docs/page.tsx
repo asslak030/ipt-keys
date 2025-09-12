@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { KeyRound, Shield, BookOpen, Sword, Zap } from "lucide-react";
+import { KeyRound, Shield, BookOpen, Sword } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import AuthGuard from "../component/AuthGuard";
@@ -21,17 +21,30 @@ const baseUrl =
 export default function DocsPage() {
   const [key, setKey] = useState("");
   const [out, setOut] = useState("");
-  const [postBody, setPostBody] = useState("Fanny");
+  const [heroesData, setHeroesData] = useState<any[]>([]); // GET all heroes
+  const [postResults, setPostResults] = useState<any[]>([]); // POST search results
+  const [postBody, setPostBody] = useState("");
 
+  // GET all heroes
   async function runGET() {
     const res = await fetch(`${baseUrl}/api/ping`, {
       headers: {
         "x-api-key": key,
       },
     });
-    setOut(JSON.stringify(await res.json(), null, 2));
+
+    const data = await res.json();
+    setOut(JSON.stringify(data, null, 2));
+
+    if (data.data) {
+      setHeroesData(data.data);
+      setPostResults([]);
+    } else {
+      setHeroesData([]);
+    }
   }
 
+  // POST search hero by name
   async function runPOST() {
     const res = await fetch(`${baseUrl}/api/echo`, {
       method: "POST",
@@ -42,14 +55,22 @@ export default function DocsPage() {
       body: JSON.stringify({ postBody }),
     });
 
-    setOut(JSON.stringify(await res.json(), null, 2));
+    const data = await res.json();
+    setOut(JSON.stringify(data, null, 2));
+
+    if (data.hero) {
+      setPostResults(Array.isArray(data.hero) ? data.hero : [data.hero]);
+      setHeroesData([]);
+    } else {
+      setPostResults([]);
+    }
   }
 
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#1a243a] to-[#2c3e50] px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-8">
-          {/* Top Toolbar - Enhanced Design */}
+          {/* Top Toolbar */}
           <motion.header
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -78,16 +99,14 @@ export default function DocsPage() {
               <div className="rounded-full border border-[#3a506b] bg-[#122036] p-1">
                 <UserButton
                   appearance={{
-                    elements: {
-                      avatarBox: "h-8 w-8",
-                    },
+                    elements: { avatarBox: "h-8 w-8" },
                   }}
                 />
               </div>
             </div>
           </motion.header>
 
-          {/* Documentation content would go here */}
+          {/* Documentation Content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -231,6 +250,7 @@ export default function DocsPage() {
                 />
               </div>
 
+              {/* Battle Report */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-300">
                   Battle Report
@@ -244,6 +264,88 @@ export default function DocsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* GET Hero Database Card */}
+          {heroesData.length > 0 && (
+            <Card className="rounded-2xl border border-[#ff7a00]/20 bg-[#122036]/80 shadow-lg backdrop-blur-sm md:col-span-3">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-white">
+                  Hero Database
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {heroesData.map((hero) => (
+                  <div
+                    key={hero.id}
+                    className="flex flex-col gap-2 rounded-lg border border-[#3a506b] bg-[#1a243a]/50 p-4"
+                  >
+                    <h3 className="text-lg font-bold text-[#ffb411]">
+                      {hero.heroName}
+                    </h3>
+                    <p className="text-gray-300">
+                      <span className="font-semibold">Role:</span> {hero.role}
+                    </p>
+                    <p className="text-gray-300">
+                      <span className="font-semibold">Pick Rate:</span>{" "}
+                      {hero.pickRate}%
+                    </p>
+                    <p className="text-gray-300">
+                      <span className="font-semibold">Description:</span>{" "}
+                      {hero.description}
+                    </p>
+                    {hero.heroImage && (
+                      <img
+                        src={hero.heroImage}
+                        alt={hero.heroName}
+                        className="mt-2 max-h-40 w-auto rounded-lg object-cover"
+                      />
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* POST Search Result Card */}
+          {postResults.length > 0 && (
+            <Card className="rounded-2xl border border-[#ff7a00]/20 bg-[#122036]/80 shadow-lg backdrop-blur-sm md:col-span-3">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-white">
+                  Search Result
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {postResults.map((hero) => (
+                  <div
+                    key={hero.id}
+                    className="flex flex-col gap-2 rounded-lg border border-[#3a506b] bg-[#1a243a]/50 p-4"
+                  >
+                    <h3 className="text-lg font-bold text-[#ffb411]">
+                      {hero.heroName}
+                    </h3>
+                    <p className="text-gray-300">
+                      <span className="font-semibold">Role:</span> {hero.role}
+                    </p>
+                    <p className="text-gray-300">
+                      <span className="font-semibold">Pick Rate:</span>{" "}
+                      {hero.pickRate}%
+                    </p>
+                    <p className="text-gray-300">
+                      <span className="font-semibold">Description:</span>{" "}
+                      {hero.description}
+                    </p>
+                    {hero.heroImage && (
+                      <img
+                        src={hero.heroImage}
+                        alt={hero.heroName}
+                        className="mt-2 max-h-40 w-auto rounded-lg object-cover"
+                      />
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </AuthGuard>

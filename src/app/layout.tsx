@@ -2,8 +2,9 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import "../styles/globals.css";
 import { Toaster } from "sonner";
+import type { Metadata } from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "HeroPedia API Key Manager",
   description: "Securely store and manage your API keys",
 };
@@ -14,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className="bg-gradient-to-br from-gray-900 to-gray-950 text-white">
         <ClerkProvider
           afterSignInUrl="/dashboard"

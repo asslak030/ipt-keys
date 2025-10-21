@@ -1,13 +1,12 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { KeyRound, Shield, BookOpen, Sword } from "lucide-react";
+import { Gamepad2, BookOpen, Terminal, ArrowLeft, Code, Server } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import AuthGuard from "../component/AuthGuard";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Separator } from "@radix-ui/react-separator";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
@@ -21,11 +20,11 @@ const baseUrl =
 export default function DocsPage() {
   const [key, setKey] = useState("");
   const [out, setOut] = useState("");
-  const [heroesData, setHeroesData] = useState<any[]>([]); // GET all heroes
-  const [postResults, setPostResults] = useState<any[]>([]); // POST search results
+  const [gamesData, setGamesData] = useState<any[]>([]);
+  const [postResults, setPostResults] = useState<any[]>([]);
   const [postBody, setPostBody] = useState("");
 
-  // GET all heroes
+  // GET all games
   async function runGET() {
     const res = await fetch(`${baseUrl}/api/ping`, {
       headers: {
@@ -37,14 +36,14 @@ export default function DocsPage() {
     setOut(JSON.stringify(data, null, 2));
 
     if (data.data) {
-      setHeroesData(data.data);
+      setGamesData(data.data);
       setPostResults([]);
     } else {
-      setHeroesData([]);
+      setGamesData([]);
     }
   }
 
-  // POST search hero by name
+  // POST search game by name
   async function runPOST() {
     const res = await fetch(`${baseUrl}/api/echo`, {
       method: "POST",
@@ -58,9 +57,9 @@ export default function DocsPage() {
     const data = await res.json();
     setOut(JSON.stringify(data, null, 2));
 
-    if (data.hero) {
-      setPostResults(Array.isArray(data.hero) ? data.hero : [data.hero]);
-      setHeroesData([]);
+    if (data.game) {
+      setPostResults(Array.isArray(data.game) ? data.game : [data.game]);
+      setGamesData([]);
     } else {
       setPostResults([]);
     }
@@ -68,35 +67,41 @@ export default function DocsPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#1a243a] to-[#2c3e50] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-8">
-          {/* Top Toolbar */}
+      <div className="min-h-screen bg-gradient-to-br from-[#1B2838] via-[#2A475E] to-[#3C5A78] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-8">
+          {/* Header */}
           <motion.header
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center justify-between rounded-2xl border border-[#3a506b] bg-[#122036]/80 p-4 backdrop-blur-sm"
+            className="flex items-center justify-between rounded-xl border border-[#4C6B8A] bg-[#171D25] p-6 shadow-lg"
           >
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-[#ff0058]/20 p-2">
-                <Sword className="h-6 w-6 text-[#ff0058]" />
-              </div>
-              <h1 className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] bg-clip-text text-2xl font-bold text-white sm:text-3xl">
-                BattlePedia
-              </h1>
-            </div>
-
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <Link href="/dashboard">
                 <Button
                   variant="outline"
-                  className="flex items-center gap-2 border-[#ff7a00]/30 bg-[#ff7a00]/10 text-[#ff7a00] transition-all hover:scale-105 hover:bg-[#ff7a00]/20"
-                  aria-label="Go to Dashboard"
+                  className="flex items-center gap-3 border-[#66C0F4] bg-[#66C0F4]/10 text-[#66C0F4] hover:bg-[#66C0F4]/20 hover:text-white transition-all duration-300"
                 >
-                  <KeyRound className="h-4 w-4" /> Command Center
+                  <ArrowLeft className="h-5 w-5" />
+                  Back to Dashboard
                 </Button>
               </Link>
-              <div className="rounded-full border border-[#3a506b] bg-[#122036] p-1">
+
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-gradient-to-br from-[#66C0F4] to-[#4B9CD3] p-3 shadow-md">
+                  <Terminal className="h-7 w-7 text-white" />
+                </div>
+                <div>
+                  <h1 className="bg-gradient-to-r from-[#66C0F4] to-[#90BA3C] bg-clip-text text-3xl font-bold text-transparent">
+                    GameVault API
+                  </h1>
+                  <p className="text-sm text-[#8F98A0]">Developer Documentation</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-full border-2 border-[#66C0F4]/50 bg-[#1B2838] p-1">
                 <UserButton
                   appearance={{
                     elements: { avatarBox: "h-8 w-8" },
@@ -106,246 +111,219 @@ export default function DocsPage() {
             </div>
           </motion.header>
 
-          {/* Documentation Content */}
+          {/* Documentation Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-2xl border border-[#3a506b] bg-[#122036]/80 p-8 backdrop-blur-sm"
+            className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] p-8 shadow-lg"
           >
-            <div className="mb-6 flex items-center gap-3">
-              <div className="rounded-lg bg-[#ff0058]/20 p-2">
-                <BookOpen className="h-6 w-6 text-[#ff0058]" />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-lg bg-gradient-to-br from-[#66C0F4] to-[#4B9CD3] p-3">
+                <BookOpen className="h-6 w-6 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Battle Guide</h2>
+              <h2 className="text-2xl font-bold text-white">API Documentation</h2>
             </div>
-            <p className="text-gray-300">
+            <p className="text-[#C7D5E0]">
               Welcome to{" "}
-              <span className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] bg-clip-text text-transparent">
-                BattlePedia
-              </span>{" "}
-              API documentation. Learn how to forge, command, and deploy your
-              battle keys.
+              <span className="text-[#66C0F4] font-semibold">GameVault</span>{" "}
+              API documentation. Learn how to integrate with our gaming platform and manage your API keys.
             </p>
           </motion.div>
-        </div>
 
-        <div className="mx-auto mt-8 grid max-w-6xl gap-8 md:grid-cols-3">
-          {/* How Authentication Works Card */}
-          <Card className="rounded-2xl border border-[#3a506b] bg-[#122036]/80 shadow-lg backdrop-blur-sm md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
-                <Shield className="h-5 w-5 text-[#ff0058]" />
-                Battle Key Deployment
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent className="space-y-4 text-gray-300">
-              <p>
-                Authenticate using the{" "}
-                <code className="text-[#ff7a00]">x-api-key</code> header. Forge
-                a key in the command center and guard it like a true warrior.
-              </p>
-
-              <Separator className="bg-[#ff0058]/20" />
-
-              <div>
-                <h3 className="font-semibold text-white">BATTLEGROUND URL</h3>
-                <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
-                  <code>{baseUrl + "/api"}</code>
-                </pre>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* GET Section */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-white">GET /api/ping</h3>
-
-                  <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
-                    <code>{`curl -H 'x-api-key: <YOUR KEY>' ${baseUrl}/api/ping`}</code>
-                  </pre>
-
-                  <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
-                    <code>{`const r = await fetch('${baseUrl}/api/ping', {
-  headers: { 'x-api-key': process.env.MY_KEY! }
-});`}</code>
-                  </pre>
-                </div>
-
-                {/* POST Section */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-white">POST /api/echo</h3>
-
-                  <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
-                    <code>
-                      {`curl -X POST \\
-                      -H 'x-api-key: <YOUR KEY>' \\
-                      -H 'Content-Type: application/json' \\
-                      -d '{"hello": "world"}' \\
-                      ${baseUrl}/api/echo`}
-                    </code>
-                  </pre>
-
-                  <pre className="overflow-x-auto rounded-lg border border-[#3a506b] bg-[#1a243a] p-3 text-sm text-[#ff7a00]">
-                    <code>
-                      {`const r = await fetch(\`${baseUrl}/api/echo\`, {
-                        method: 'POST',
-                        headers: {
-                          'x-api-key': process.env.MY_KEY!,
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ hello: 'world' }),
-                      });`}
-                    </code>
-                  </pre>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Interactive Tester Card */}
-          <Card className="h-full rounded-2xl border border-[#ff0058]/20 bg-[#122036]/80 shadow-lg backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
-                Battle Simulator
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              {/* API Key Input */}
-              <Input
-                placeholder="Paste your battle key (sk...)"
-                className="border-[#3a506b] bg-[#1a243a] text-white"
-                value={key}
-                onChange={(e) => setKey(e.target.value)}
-              />
-
-              {/* Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] text-white hover:from-[#ff0058] hover:to-[#ff7a00] hover:shadow-[#ff0058]/30"
-                  onClick={runGET}
-                >
-                  Test GET /api/ping
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="bg-gradient-to-r from-[#ff0058] to-[#ff7a00] text-white hover:from-[#ff0058] hover:to-[#ff7a00] hover:shadow-[#ff0058]/30"
-                  onClick={runPOST}
-                >
-                  Test POST /api/echo
-                </Button>
-              </div>
-
-              {/* POST Body Input */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-300">
-                  Battle Command (JSON)
-                </Label>
-                <Textarea
-                  className="border-[#3a506b] bg-[#1a243a] text-white"
-                  rows={5}
-                  value={postBody}
-                  onChange={(e) => setPostBody(e.target.value)}
-                />
-              </div>
-
-              {/* Battle Report */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-300">
-                  Battle Report
-                </Label>
-                <Textarea
-                  className="border-[#3a506b] bg-[#1a243a] font-mono text-sm text-white"
-                  rows={10}
-                  readOnly
-                  value={out}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* GET Hero Database Card */}
-          {heroesData.length > 0 && (
-            <Card className="rounded-2xl border border-[#ff7a00]/20 bg-[#122036]/80 shadow-lg backdrop-blur-sm md:col-span-3">
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* API Documentation Card */}
+            <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg lg:col-span-2">
               <CardHeader>
-                <CardTitle className="text-xl font-bold text-white">
-                  Hero Database
+                <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
+                  <Server className="h-5 w-5 text-[#66C0F4]" />
+                  API Configuration
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {heroesData.map((hero) => (
-                  <div
-                    key={hero.id}
-                    className="flex flex-col gap-2 rounded-lg border border-[#3a506b] bg-[#1a243a]/50 p-4"
-                  >
-                    <h3 className="text-lg font-bold text-[#ffb411]">
-                      {hero.heroName}
-                    </h3>
-                    <p className="text-gray-300">
-                      <span className="font-semibold">Role:</span> {hero.role}
-                    </p>
-                    <p className="text-gray-300">
-                      <span className="font-semibold">Pick Rate:</span>{" "}
-                      {hero.pickRate}%
-                    </p>
-                    <p className="text-gray-300">
-                      <span className="font-semibold">Description:</span>{" "}
-                      {hero.description}
-                    </p>
-                    {hero.heroImage && (
-                      <img
-                        src={hero.heroImage}
-                        alt={hero.heroName}
-                        className="mt-2 max-h-40 w-auto rounded-lg object-cover"
-                      />
-                    )}
-                  </div>
-                ))}
+
+              <CardContent className="space-y-6 text-[#C7D5E0]">
+                <p>
+                  Authenticate using the{" "}
+                  <code className="text-[#66C0F4] bg-[#171D25] px-2 py-1 rounded">x-api-key</code>{" "}
+                  header. Generate your API key in the dashboard and keep it secure.
+                </p>
+
+                <div className="border-t border-[#4C6B8A] pt-4">
+                  <h3 className="font-semibold text-white mb-2">BASE URL</h3>
+                  <pre className="overflow-x-auto rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 text-sm text-[#66C0F4]">
+                    <code>{baseUrl + "/api"}</code>
+                  </pre>
+                </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* POST Search Result Card */}
-          {postResults.length > 0 && (
-            <Card className="rounded-2xl border border-[#ff7a00]/20 bg-[#122036]/80 shadow-lg backdrop-blur-sm md:col-span-3">
+            {/* API Tester Card */}
+            <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg h-fit">
               <CardHeader>
-                <CardTitle className="text-xl font-bold text-white">
-                  Search Result
+                <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
+                  <Code className="h-5 w-5 text-[#90BA3C]" />
+                  API Testing Suite
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {postResults.map((hero) => (
-                  <div
-                    key={hero.id}
-                    className="flex flex-col gap-2 rounded-lg border border-[#3a506b] bg-[#1a243a]/50 p-4"
+
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-[#C7D5E0]">API Key</Label>
+                  <Input
+                    placeholder="Enter your API key (sk...)"
+                    className="border-[#4C6B8A] bg-[#171D25] text-white placeholder-[#8F98A0]"
+                    value={key}
+                    onChange={(e) => setKey(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    className="bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:from-[#66C0F4] hover:to-[#4B9CD3] hover:shadow-lg flex-1"
+                    onClick={runGET}
                   >
-                    <h3 className="text-lg font-bold text-[#ffb411]">
-                      {hero.heroName}
-                    </h3>
-                    <p className="text-gray-300">
-                      <span className="font-semibold">Role:</span> {hero.role}
-                    </p>
-                    <p className="text-gray-300">
-                      <span className="font-semibold">Pick Rate:</span>{" "}
-                      {hero.pickRate}%
-                    </p>
-                    <p className="text-gray-300">
-                      <span className="font-semibold">Description:</span>{" "}
-                      {hero.description}
-                    </p>
-                    {hero.heroImage && (
-                      <img
-                        src={hero.heroImage}
-                        alt={hero.heroName}
-                        className="mt-2 max-h-40 w-auto rounded-lg object-cover"
-                      />
-                    )}
-                  </div>
-                ))}
+                    Test GET /api/ping
+                  </Button>
+                  <Button
+                    className="bg-gradient-to-r from-[#90BA3C] to-[#7AA32A] text-white hover:from-[#90BA3C] hover:to-[#7AA32A] hover:shadow-lg flex-1"
+                    onClick={runPOST}
+                  >
+                    Test POST /api/echo
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-[#C7D5E0]">
+                    Request Body (JSON)
+                  </Label>
+                  <Textarea
+                    className="border-[#4C6B8A] bg-[#171D25] text-white placeholder-[#8F98A0]"
+                    rows={4}
+                    value={postBody}
+                    onChange={(e) => setPostBody(e.target.value)}
+                    placeholder='{"query": "search"}'
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-[#C7D5E0]">
+                    Response
+                  </Label>
+                  <Textarea
+                    className="border-[#4C6B8A] bg-[#171D25] font-mono text-sm text-white"
+                    rows={8}
+                    readOnly
+                    value={out}
+                    placeholder="API response will appear here..."
+                  />
+                </div>
               </CardContent>
             </Card>
-          )}
+
+            {/* ✅ GET Games Database Card */}
+            {gamesData.length > 0 && (
+              <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg lg:col-span-3">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
+                    <Gamepad2 className="h-5 w-5 text-[#66C0F4]" />
+                    Game Database
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {gamesData.map((game) => (
+                    <div
+                      key={game.id}
+                      className="flex flex-col gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 hover:border-[#66C0F4] transition-colors"
+                    >
+                      <h3 className="text-lg font-bold text-[#66C0F4]">
+                        {game.game_name}
+                      </h3>
+                      <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
+                      <div className="space-y-2 text-sm text-[#C7D5E0]">
+                        <p>
+                          <span className="font-semibold text-[#90BA3C]">Category:</span>{" "}
+                          {game.category}
+                        </p>
+                        <p>
+                          <span className="font-semibold text-[#90BA3C]">Price:</span>{" "}
+                          ₱{game.price}
+                        </p>
+                        <p>
+                          <span className="font-semibold text-[#90BA3C]">Description:</span>{" "}
+                          {game.description}
+                        </p>
+                      </div>
+                      {game.game_image && (
+                        <img
+                          src={game.game_image}
+                          alt={game.game_name}
+                          className="mt-3 rounded-lg w-full h-40 object-cover"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ✅ POST Search Result Card */}
+            {postResults.length > 0 && (
+              <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg lg:col-span-3">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
+                    <Code className="h-5 w-5 text-[#90BA3C]" />
+                    Search Results
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {postResults.map((game) => (
+                    <div
+                      key={game.id}
+                      className="flex flex-col gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 hover:border-[#90BA3C] transition-colors"
+                    >
+                      <h3 className="text-lg font-bold text-[#90BA3C]">
+                        {game.game_name}
+                      </h3>
+                      <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
+                      <div className="space-y-2 text-sm text-[#C7D5E0]">
+                        <p>
+                          <span className="font-semibold text-[#66C0F4]">Category:</span>{" "}
+                          {game.category}
+                        </p>
+                        <p>
+                          <span className="font-semibold text-[#66C0F4]">Price:</span>{" "}
+                          ₱{game.price}
+                        </p>
+                        <p>
+                          <span className="font-semibold text-[#66C0F4]">Description:</span>{" "}
+                          {game.description}
+                        </p>
+                      </div>
+                      {game.game_image && (
+                        <img
+                          src={game.game_image}
+                          alt={game.game_name}
+                          className="mt-3 rounded-lg w-full h-40 object-cover"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Footer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="rounded-xl border border-[#4C6B8A] bg-[#171D25] p-6 text-center"
+          >
+            <p className="text-sm text-[#8F98A0]">
+              Need more help? Check out our comprehensive API guide or contact support.
+            </p>
+          </motion.div>
         </div>
       </div>
     </AuthGuard>

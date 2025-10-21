@@ -12,10 +12,16 @@ import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
 import { useState } from "react";
 
-const baseUrl =
-  typeof window !== "undefined"
-    ? window.location.origin
-    : "http://localhost:3000/api";
+// Fixed base URL logic
+const getBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  // Use the deployment URL for server-side rendering
+  return "https://ipt-final-topaz.vercel.app";
+};
+
+const baseUrl = getBaseUrl();
 
 export default function DocsPage() {
   const [key, setKey] = useState("");
@@ -23,45 +29,86 @@ export default function DocsPage() {
   const [gamesData, setGamesData] = useState<any[]>([]);
   const [postResults, setPostResults] = useState<any[]>([]);
   const [postBody, setPostBody] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // GET all games
   async function runGET() {
-    const res = await fetch(`${baseUrl}/api/ping`, {
-      headers: {
-        "x-api-key": key,
-      },
-    });
+    setLoading(true);
+    try {
+      const res = await fetch(`${baseUrl}/api/ping`, {
+        headers: {
+          "x-api-key": key,
+        },
+      });
 
-    const data = await res.json();
-    setOut(JSON.stringify(data, null, 2));
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
 
-    if (data.data) {
-      setGamesData(data.data);
-      setPostResults([]);
-    } else {
-      setGamesData([]);
+      const data = await res.json();
+      setOut(JSON.stringify(data, null, 2));
+
+      if (data.data) {
+        setGamesData(data.data);
+        setPostResults([]);
+      } else {
+        setGamesData([]);
+      }
+    } catch (error) {
+      console.error("GET request failed:", error);
+      setOut(JSON.stringify({ 
+        error: "GET Request failed", 
+        details: error instanceof Error ? error.message : "Unknown error",
+        url: `${baseUrl}/api/ping`
+      }, null, 2));
+    } finally {
+      setLoading(false);
     }
   }
 
   // POST search game by name
   async function runPOST() {
-    const res = await fetch(`${baseUrl}/api/echo`, {
-      method: "POST",
-      headers: {
-        "x-api-key": key,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ postBody }),
-    });
+    setLoading(true);
+    try {
+      // Parse the JSON body first to validate it
+      let requestBody;
+      try {
+        requestBody = postBody ? JSON.parse(postBody) : {};
+      } catch (parseError) {
+        throw new Error("Invalid JSON in request body");
+      }
 
-    const data = await res.json();
-    setOut(JSON.stringify(data, null, 2));
+      const res = await fetch(`${baseUrl}/api/echo`, {
+        method: "POST",
+        headers: {
+          "x-api-key": key,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-    if (data.game) {
-      setPostResults(Array.isArray(data.game) ? data.game : [data.game]);
-      setGamesData([]);
-    } else {
-      setPostResults([]);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setOut(JSON.stringify(data, null, 2));
+
+      if (data.game) {
+        setPostResults(Array.isArray(data.game) ? data.game : [data.game]);
+        setGamesData([]);
+      } else {
+        setPostResults([]);
+      }
+    } catch (error) {
+      console.error("POST request failed:", error);
+      setOut(JSON.stringify({ 
+        error: "POST Request failed", 
+        details: error instanceof Error ? error.message : "Unknown error",
+        url: `${baseUrl}/api/echo`
+      }, null, 2));
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -153,6 +200,9 @@ export default function DocsPage() {
                   <pre className="overflow-x-auto rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 text-sm text-[#66C0F4]">
                     <code>{baseUrl + "/api"}</code>
                   </pre>
+                  <p className="text-xs text-[#8F98A0] mt-2">
+                    Current environment: {typeof window !== "undefined" ? "Client-side" : "Server-side"}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -163,6 +213,9 @@ export default function DocsPage() {
                 <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
                   <Code className="h-5 w-5 text-[#90BA3C]" />
                   API Testing Suite
+                  {loading && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#90BA3C] ml-2"></div>
+                  )}
                 </CardTitle>
               </CardHeader>
 
@@ -181,12 +234,14 @@ export default function DocsPage() {
                   <Button
                     className="bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:from-[#66C0F4] hover:to-[#4B9CD3] hover:shadow-lg flex-1"
                     onClick={runGET}
+                    disabled={loading}
                   >
                     Test GET /api/ping
                   </Button>
                   <Button
                     className="bg-gradient-to-r from-[#90BA3C] to-[#7AA32A] text-white hover:from-[#90BA3C] hover:to-[#7AA32A] hover:shadow-lg flex-1"
                     onClick={runPOST}
+                    disabled={loading}
                   >
                     Test POST /api/echo
                   </Button>
@@ -197,12 +252,15 @@ export default function DocsPage() {
                     Request Body (JSON)
                   </Label>
                   <Textarea
-                    className="border-[#4C6B8A] bg-[#171D25] text-white placeholder-[#8F98A0]"
+                    className="border-[#4C6B8A] bg-[#171D25] text-white placeholder-[#8F98A0] font-mono text-sm"
                     rows={4}
                     value={postBody}
                     onChange={(e) => setPostBody(e.target.value)}
                     placeholder='{"query": "search"}'
                   />
+                  <p className="text-xs text-[#8F98A0]">
+                    Enter valid JSON for POST requests
+                  </p>
                 </div>
 
                 <div className="space-y-2">

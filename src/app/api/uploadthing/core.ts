@@ -1,42 +1,58 @@
+import { auth } from "@clerk/nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
+import z from "zod";
+import { db } from "~/server/db";
+import { heroes } from "~/server/db/schema";
 
 const f = createUploadthing();
 
-const auth = (req: Request) => ({ id: "fakeId" }); // Fake auth function
-
-// FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
-  // Define as many FileRoutes as you like, each with a unique routeSlug
   imageUploader: f({
     image: {
-      /**
-       * For full list of options and defaults, see the File Route API reference
-       * @see https://docs.uploadthing.com/file-routes#route-config
-       */
       maxFileSize: "4MB",
       maxFileCount: 1,
     },
   })
-    // Set permissions and file types for this FileRoute
-    .middleware(async ({ req }) => {
-      // This code runs on your server before upload
-      const user = await auth(req);
+    // ✅ Input schema for required game info
+    .input(
+      z.object({
+        gameName: z.string().min(2, "Game name is required"),
+        category: z.string().min(2, "Category is required"),
+        price: z.string().min(1, "Price is required"),
+        description: z.string().optional(),
+      }),
+    )
 
-      // If you throw, the user will not be able to upload
-      if (!user) throw new UploadThingError("Unauthorized");
+    // ✅ Auth middleware (runs before upload)
+    .middleware(async ({ req, input }) => {
+      const { userId } = await auth();
 
-      // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: user.id };
+      if (!userId) throw new UploadThingError("Unauthorized");
+
+      // Pass userId and form data to next step
+      return { userId, ...input };
     })
+
+    // ✅ Runs after successful upload
     .onUploadComplete(async ({ metadata, file }) => {
-      // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
+      console.log("✅ Upload complete for user:", metadata.userId);
+      console.log("📸 File URL:", file.ufsUrl);
 
-      console.log("file url", file.ufsUrl);
+      // ✅ Insert into heroes table
+      await db.insert(heroes).values({
+        gameName: metadata.gameName,
+        category: metadata.category,
+        price: metadata.price,
+        description: metadata.description ?? "",
+        gameImage: file.ufsUrl,
+      });
 
-      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId };
+      return {
+        uploadedBy: metadata.userId,
+        imageUrl: file.ufsUrl,
+        message: "Game added successfully!",
+      };
     }),
 } satisfies FileRouter;
 

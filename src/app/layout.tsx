@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import { ourFileRouter } from "~/app/api/uploadthing/core";
 
 export const metadata: Metadata = {
-  title: "HeroPedia API Key Manager",
+  title: "Game Vault - Manage Your Game API Keys",
   description: "Securely store and manage your API keys",
 };
 

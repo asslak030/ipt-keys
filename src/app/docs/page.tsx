@@ -15,29 +15,45 @@ import { useState } from "react";
 const baseUrl =
   typeof window !== "undefined"
     ? window.location.origin
-    : "https://ipt-final-topaz.vercel.app/"
-    ;
+    : "https://ipt-final-topaz.vercel.app/";
+
+interface Game {
+  id: number;
+  game_name: string;
+  category: string;
+  price: number;
+  description: string;
+  image_url?: string;
+}
 
 export default function DocsPage() {
   const [key, setKey] = useState("");
   const [out, setOut] = useState("");
-  const [gamesData, setGamesData] = useState<any[]>([]);
-  const [postResults, setPostResults] = useState<any[]>([]);
+  const [gamesData, setGamesData] = useState<Game[]>([]);
+  const [postResults, setPostResults] = useState<Game[]>([]);
   const [postBody, setPostBody] = useState("");
 
   // GET all games
   async function runGET() {
     const res = await fetch(`${baseUrl}/api/ping`, {
-      headers: {
-        "x-api-key": key,
-      },
+      headers: { "x-api-key": key },
     });
 
     const data = await res.json();
     setOut(JSON.stringify(data, null, 2));
 
     if (data.data) {
-      setGamesData(data.data);
+      // Map response to consistent Game type
+      setGamesData(
+        data.data.map((g: any) => ({
+          id: g.id,
+          game_name: g.game_name,
+          category: g.category,
+          price: g.price,
+          description: g.description,
+          image_url: g.image_url,
+        }))
+      );
       setPostResults([]);
     } else {
       setGamesData([]);
@@ -48,10 +64,7 @@ export default function DocsPage() {
   async function runPOST() {
     const res = await fetch(`${baseUrl}/api/echo`, {
       method: "POST",
-      headers: {
-        "x-api-key": key,
-        "Content-Type": "application/json",
-      },
+      headers: { "x-api-key": key, "Content-Type": "application/json" },
       body: JSON.stringify({ postBody }),
     });
 
@@ -59,7 +72,16 @@ export default function DocsPage() {
     setOut(JSON.stringify(data, null, 2));
 
     if (data.game) {
-      setPostResults(Array.isArray(data.game) ? data.game : [data.game]);
+      setPostResults(
+        (Array.isArray(data.game) ? data.game : [data.game]).map((g: any) => ({
+          id: g.id,
+          game_name: g.game_name,
+          category: g.category,
+          price: g.price,
+          description: g.description,
+          image_url: g.image_url,
+        }))
+      );
       setGamesData([]);
     } else {
       setPostResults([]);
@@ -103,63 +125,15 @@ export default function DocsPage() {
 
             <div className="flex items-center gap-3">
               <div className="rounded-full border-2 border-[#66C0F4]/50 bg-[#1B2838] p-1">
-                <UserButton
-                  appearance={{
-                    elements: { avatarBox: "h-8 w-8" },
-                  }}
-                />
+                <UserButton appearance={{ elements: { avatarBox: "h-8 w-8" } }} />
               </div>
             </div>
           </motion.header>
 
-          {/* Documentation Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] p-8 shadow-lg"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="rounded-lg bg-gradient-to-br from-[#66C0F4] to-[#4B9CD3] p-3">
-                <BookOpen className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-white">API Documentation</h2>
-            </div>
-            <p className="text-[#C7D5E0]">
-              Welcome to{" "}
-              <span className="text-[#66C0F4] font-semibold">GameVault</span>{" "}
-              API documentation. Learn how to integrate with our gaming platform and manage your API keys.
-            </p>
-          </motion.div>
-
+          {/* API Testing & Docs */}
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* API Documentation Card */}
-            <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
-                  <Server className="h-5 w-5 text-[#66C0F4]" />
-                  API Configuration
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="space-y-6 text-[#C7D5E0]">
-                <p>
-                  Authenticate using the{" "}
-                  <code className="text-[#66C0F4] bg-[#171D25] px-2 py-1 rounded">x-api-key</code>{" "}
-                  header. Generate your API key in the dashboard and keep it secure.
-                </p>
-
-                <div className="border-t border-[#4C6B8A] pt-4">
-                  <h3 className="font-semibold text-white mb-2">BASE URL</h3>
-                  <pre className="overflow-x-auto rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 text-sm text-[#66C0F4]">
-                    <code>{baseUrl + "/api"}</code>
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* API Tester Card */}
-            <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg h-fit">
+            <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg h-fit lg:col-span-3">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
                   <Code className="h-5 w-5 text-[#90BA3C]" />
@@ -180,13 +154,13 @@ export default function DocsPage() {
 
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    className="bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:from-[#66C0F4] hover:to-[#4B9CD3] hover:shadow-lg flex-1"
+                    className="bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:shadow-lg flex-1"
                     onClick={runGET}
                   >
                     Test GET /api/ping
                   </Button>
                   <Button
-                    className="bg-gradient-to-r from-[#90BA3C] to-[#7AA32A] text-white hover:from-[#90BA3C] hover:to-[#7AA32A] hover:shadow-lg flex-1"
+                    className="bg-gradient-to-r from-[#90BA3C] to-[#7AA32A] text-white hover:shadow-lg flex-1"
                     onClick={runPOST}
                   >
                     Test POST /api/echo
@@ -207,9 +181,7 @@ export default function DocsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[#C7D5E0]">
-                    Response
-                  </Label>
+                  <Label className="text-sm font-medium text-[#C7D5E0]">Response</Label>
                   <Textarea
                     className="border-[#4C6B8A] bg-[#171D25] font-mono text-sm text-white"
                     rows={8}
@@ -221,7 +193,7 @@ export default function DocsPage() {
               </CardContent>
             </Card>
 
-            {/* ✅ GET Games Database Card */}
+            {/* GET Games Database */}
             {gamesData.length > 0 && (
               <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg lg:col-span-3">
                 <CardHeader>
@@ -236,27 +208,22 @@ export default function DocsPage() {
                       key={game.id}
                       className="flex flex-col gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 hover:border-[#66C0F4] transition-colors"
                     >
-                      <h3 className="text-lg font-bold text-[#66C0F4]">
-                        {game.game_name}
-                      </h3>
+                      <h3 className="text-lg font-bold text-[#66C0F4]">{game.game_name}</h3>
                       <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
-                      <div className="space-y-2 text-sm text-[#C7D5E0]">
-                        <p>
-                          <span className="font-semibold text-[#90BA3C]">Category:</span>{" "}
-                          {game.category}
-                        </p>
-                        <p>
-                          <span className="font-semibold text-[#90BA3C]">Price:</span>{" "}
-                          ₱{game.price}
-                        </p>
-                        <p>
-                          <span className="font-semibold text-[#90BA3C]">Description:</span>{" "}
-                          {game.description}
-                        </p>
-                      </div>
-                      {game.game_image && (
+                      <p className="text-sm text-[#C7D5E0]">
+                        <span className="font-semibold text-[#90BA3C]">Category:</span>{" "}
+                        {game.category}
+                      </p>
+                      <p className="text-sm text-[#C7D5E0]">
+                        <span className="font-semibold text-[#90BA3C]">Price:</span> ₱{game.price}
+                      </p>
+                      <p className="text-sm text-[#C7D5E0]">
+                        <span className="font-semibold text-[#90BA3C]">Description:</span>{" "}
+                        {game.description}
+                      </p>
+                      {game.image_url && (
                         <img
-                          src={game.game_image}
+                          src={game.image_url}
                           alt={game.game_name}
                           className="mt-3 rounded-lg w-full h-40 object-cover"
                         />
@@ -267,7 +234,7 @@ export default function DocsPage() {
               </Card>
             )}
 
-            {/* ✅ POST Search Result Card */}
+            {/* POST Search Result */}
             {postResults.length > 0 && (
               <Card className="rounded-xl border border-[#4C6B8A] bg-[#1B2838] shadow-lg lg:col-span-3">
                 <CardHeader>
@@ -282,27 +249,22 @@ export default function DocsPage() {
                       key={game.id}
                       className="flex flex-col gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 hover:border-[#90BA3C] transition-colors"
                     >
-                      <h3 className="text-lg font-bold text-[#90BA3C]">
-                        {game.game_name}
-                      </h3>
+                      <h3 className="text-lg font-bold text-[#90BA3C]">{game.game_name}</h3>
                       <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
-                      <div className="space-y-2 text-sm text-[#C7D5E0]">
-                        <p>
-                          <span className="font-semibold text-[#66C0F4]">Category:</span>{" "}
-                          {game.category}
-                        </p>
-                        <p>
-                          <span className="font-semibold text-[#66C0F4]">Price:</span>{" "}
-                          ₱{game.price}
-                        </p>
-                        <p>
-                          <span className="font-semibold text-[#66C0F4]">Description:</span>{" "}
-                          {game.description}
-                        </p>
-                      </div>
-                      {game.game_image && (
+                      <p className="text-sm text-[#C7D5E0]">
+                        <span className="font-semibold text-[#66C0F4]">Category:</span>{" "}
+                        {game.category}
+                      </p>
+                      <p className="text-sm text-[#C7D5E0]">
+                        <span className="font-semibold text-[#66C0F4]">Price:</span> ₱{game.price}
+                      </p>
+                      <p className="text-sm text-[#C7D5E0]">
+                        <span className="font-semibold text-[#66C0F4]">Description:</span>{" "}
+                        {game.description}
+                      </p>
+                      {game.image_url && (
                         <img
-                          src={game.game_image}
+                          src={game.image_url}
                           alt={game.game_name}
                           className="mt-3 rounded-lg w-full h-40 object-cover"
                         />
@@ -313,18 +275,6 @@ export default function DocsPage() {
               </Card>
             )}
           </div>
-
-          {/* Footer */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="rounded-xl border border-[#4C6B8A] bg-[#171D25] p-6 text-center"
-          >
-            <p className="text-sm text-[#8F98A0]">
-              Need more help? Check out our comprehensive API guide or contact support.
-            </p>
-          </motion.div>
         </div>
       </div>
     </AuthGuard>

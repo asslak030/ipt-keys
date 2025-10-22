@@ -3,21 +3,20 @@ import { verifyKey } from "~/server/key";
 import { ilike } from "drizzle-orm";
 import { db } from "~/server/db";
 import { heroes } from "~/server/db/schema";
-import { ratelimiter } from "~/server/ratelimit"; // ✅ Make sure this path is correct
+import { ratelimiter } from "~/server/ratelimit";
 
 export async function POST(req: NextRequest) {
   try {
     const apiKey = req.headers.get("x-api-key") ?? "";
     const result = await verifyKey(apiKey);
 
-    // 🧩 Invalid API key handling
+    // 🧩 Invalid API key
     if (!result.valid) {
       return NextResponse.json({ error: result.reason }, { status: 401 });
     }
 
-    // 🧩 Apply rate limiting
+    // 🧩 Rate limiting
     const { success, remaining, limit, reset } = await ratelimiter.limit(apiKey);
-
     if (!success) {
       return new NextResponse(
         JSON.stringify({ error: "Rate limit exceeded" }),
@@ -25,7 +24,9 @@ export async function POST(req: NextRequest) {
           status: 429,
           headers: {
             "Content-Type": "application/json",
-            "Retry-After": String(Math.max(1, Math.ceil((+reset - Date.now()) / 1000))),
+            "Retry-After": String(
+              Math.max(1, Math.ceil((+reset - Date.now()) / 1000))
+            ),
             "X-RateLimit-Limit": String(limit),
             "X-RateLimit-Remaining": String(Math.max(0, remaining)),
           },
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🧩 Parse JSON safely
+    // 🧩 Parse request body
     let body;
     try {
       body = await req.json();
@@ -52,15 +53,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🧩 Query games from DB
+    // 🧩 Query the database
     const games = await db
       .select({
         id: heroes.id,
-        game_name: heroes.gameName, // consistent naming for frontend
+        game_name: heroes.gameName,
         category: heroes.category,
         price: heroes.price,
         description: heroes.description,
-        game_image: heroes.gameImage, // consistent naming for frontend
+        image_url: heroes.imageUrl,
       })
       .from(heroes)
       .where(ilike(heroes.gameName, `%${searchQuery}%`));
@@ -79,12 +80,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🧩 Return successful response
+    // 🧩 Success response
     return NextResponse.json(
       {
         ok: true,
         message: "Games found successfully.",
-        game: games, // return all matches
+        game: games,
         keyId: result.keyId,
       },
       {

@@ -1,7 +1,6 @@
-// app/games/page.tsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -32,6 +31,7 @@ import {
   Gamepad2,
   Upload,
   X,
+  Loader2,
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
 
@@ -45,39 +45,40 @@ type Game = {
 };
 
 export default function GamesPage() {
-  const [games, setGames] = useState<Game[]>([
-    {
-      id: "1",
-      name: "Cyberpunk 2077",
-      description: "Open-world action adventure RPG",
-      category: "RPG",
-      price: 59.99,
-      image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=400&fit=crop"
-    },
-    {
-      id: "2",
-      name: "Call of Duty",
-      description: "First-person shooter game",
-      category: "FPS",
-      price: 69.99,
-      image: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=400&h=400&fit=crop"
-    },
-    {
-      id: "3",
-      name: "FIFA 24",
-      description: "Football simulation game",
-      category: "Sports",
-      price: 49.99,
-      image: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=400&h=400&fit=crop"
-    }
-  ]);
-
+  const [games, setGames] = useState<Game[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingGame, setEditingGame] = useState<Game | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { user } = useUser();
+
+  // Fetch games on component mount
+  useEffect(() => {
+    fetchGames();
+  }, []);
+
+  const fetchGames = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/game-management');
+      if (response.ok) {
+        const gamesData = await response.json();
+        setGames(gamesData);
+      } else {
+        console.error('Failed to fetch games');
+        alert('Failed to load games. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error fetching games:', error);
+      alert('Failed to load games. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const categories = ["all", ...new Set(games.map(game => game.category))];
 
@@ -87,19 +88,83 @@ export default function GamesPage() {
     (selectedCategory === "all" || game.category === selectedCategory)
   );
 
-  const handleDelete = (id: string) => {
-    setGames(games.filter(game => game.id !== id));
-  };
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this game?')) {
+      return;
+    }
 
-  const handleSave = (gameData: Omit<Game, "id">) => {
-    if (editingGame) {
-      setGames(games.map(game => game.id === editingGame.id ? { ...gameData, id: editingGame.id } : game));
-      setEditingGame(null);
-    } else {
-      setGames([...games, { ...gameData, id: Date.now().toString() }]);
-      setIsCreating(false);
+    try {
+      setDeletingId(id);
+      const response = await fetch(`/api/game-management/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setGames(games.filter(game => game.id !== id));
+      } else {
+        const error = await response.json();
+        alert(`Failed to delete game: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting game:', error);
+      alert('Failed to delete game. Please try again.');
+    } finally {
+      setDeletingId(null);
     }
   };
+
+  const handleSave = async (gameData: Omit<Game, "id">) => {
+    try {
+      setSaving(true);
+      const url = editingGame 
+        ? `/api/game-management/${editingGame.id}`
+        : '/api/game-management';
+      
+      const method = editingGame ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(gameData),
+      });
+
+      if (response.ok) {
+        const savedGame = await response.json();
+        
+        if (editingGame) {
+          setGames(games.map(game => 
+            game.id === editingGame.id ? savedGame : game
+          ));
+        } else {
+          setGames([...games, savedGame]);
+        }
+        
+        setEditingGame(null);
+        setIsCreating(false);
+      } else {
+        const error = await response.json();
+        alert(`Failed to save game: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error saving game:', error);
+      alert('Failed to save game. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1B2838] via-[#2A475E] to-[#3C5A78] text-white font-sans flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#66C0F4] mx-auto"></div>
+          <p className="mt-4 text-[#C7D5E0]">Loading games...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1B2838] via-[#2A475E] to-[#3C5A78] text-white font-sans">
@@ -275,7 +340,28 @@ export default function GamesPage() {
         </Card>
 
         {/* Games Display */}
-        {viewMode === "list" ? (
+        {filteredGames.length === 0 ? (
+          <Card className="border-[#4C6B8A] bg-[#1B2838] shadow-lg">
+            <CardContent className="p-12 text-center">
+              <Package className="h-16 w-16 text-[#8F98A0] mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">No games found</h3>
+              <p className="text-[#8F98A0] mb-6">
+                {games.length === 0 
+                  ? "Get started by adding your first game to the library."
+                  : "No games match your search criteria. Try adjusting your filters."}
+              </p>
+              {games.length === 0 && (
+                <Button
+                  onClick={() => setIsCreating(true)}
+                  className="bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:from-[#66C0F4] hover:to-[#4B9CD3]"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Add Your First Game
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : viewMode === "list" ? (
           <Card className="border-[#4C6B8A] bg-[#1B2838] shadow-lg">
             <CardHeader className="pb-4">
               <CardTitle className="text-[#66C0F4] flex items-center gap-3 text-xl">
@@ -342,6 +428,7 @@ export default function GamesPage() {
                               size="sm"
                               className="border-[#66C0F4] text-[#66C0F4] hover:bg-[#66C0F4]/20 hover:text-[#66C0F4] rounded-lg transition-all duration-300"
                               onClick={() => setEditingGame(game)}
+                              disabled={deletingId === game.id}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -350,8 +437,13 @@ export default function GamesPage() {
                               size="sm"
                               className="border-[#FF6B35] text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-[#FF6B35] rounded-lg transition-all duration-300"
                               onClick={() => handleDelete(game.id)}
+                              disabled={deletingId === game.id}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              {deletingId === game.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
                             </Button>
                           </div>
                         </TableCell>
@@ -403,6 +495,7 @@ export default function GamesPage() {
                         size="sm"
                         className="flex-1 border-[#66C0F4] text-[#66C0F4] hover:bg-[#66C0F4]/20 hover:text-[#66C0F4] rounded-lg transition-all duration-300"
                         onClick={() => setEditingGame(game)}
+                        disabled={deletingId === game.id}
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
@@ -412,8 +505,13 @@ export default function GamesPage() {
                         size="sm"
                         className="border-[#FF6B35] text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-[#FF6B35] rounded-lg transition-all duration-300"
                         onClick={() => handleDelete(game.id)}
+                        disabled={deletingId === game.id}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {deletingId === game.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -432,6 +530,7 @@ export default function GamesPage() {
               setIsCreating(false);
               setEditingGame(null);
             }}
+            saving={saving}
           />
         )}
       </div>
@@ -439,10 +538,11 @@ export default function GamesPage() {
   );
 }
 
-function GameForm({ game, onSave, onCancel }: {
+function GameForm({ game, onSave, onCancel, saving }: {
   game: Game | null;
   onSave: (data: Omit<Game, "id">) => void;
   onCancel: () => void;
+  saving: boolean;
 }) {
   const [formData, setFormData] = useState({
     name: game?.name || "",
@@ -550,6 +650,7 @@ function GameForm({ game, onSave, onCancel }: {
                     className="bg-[#171D25] border-[#4C6B8A] text-white h-12 rounded-lg focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
                     placeholder="Enter game name"
                     required
+                    disabled={saving}
                   />
                 </div>
                 
@@ -561,6 +662,7 @@ function GameForm({ game, onSave, onCancel }: {
                     className="bg-[#171D25] border-[#4C6B8A] text-white rounded-lg focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50 min-h-[120px]"
                     placeholder="Enter game description"
                     required
+                    disabled={saving}
                   />
                 </div>
                 
@@ -572,6 +674,7 @@ function GameForm({ game, onSave, onCancel }: {
                     className="bg-[#171D25] border-[#4C6B8A] text-white h-12 rounded-lg focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
                     placeholder="e.g., RPG, FPS, Sports"
                     required
+                    disabled={saving}
                   />
                 </div>
                 
@@ -588,6 +691,7 @@ function GameForm({ game, onSave, onCancel }: {
                       className="bg-[#171D25] border-[#4C6B8A] text-white h-12 rounded-lg pl-12 focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
                       placeholder="0.00"
                       required
+                      disabled={saving}
                     />
                   </div>
                 </div>
@@ -604,13 +708,16 @@ function GameForm({ game, onSave, onCancel }: {
                     onChange={handleFileSelect}
                     accept="image/*"
                     className="hidden"
+                    disabled={saving}
                   />
 
                   <div
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
-                    onClick={triggerFileInput}
-                    className="border-2 border-dashed border-[#4C6B8A] rounded-lg p-6 bg-[#171D25] min-h-[250px] flex flex-col items-center justify-center cursor-pointer hover:border-[#66C0F4] hover:bg-[#1B2838] transition-all duration-300 group"
+                    onClick={saving ? undefined : triggerFileInput}
+                    className={`border-2 border-dashed border-[#4C6B8A] rounded-lg p-6 bg-[#171D25] min-h-[250px] flex flex-col items-center justify-center transition-all duration-300 group ${
+                      saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#66C0F4] hover:bg-[#1B2838]'
+                    }`}
                   >
                     {imagePreview ? (
                       <div className="text-center relative w-full">
@@ -619,16 +726,18 @@ function GameForm({ game, onSave, onCancel }: {
                           alt="Preview" 
                           className="max-w-full max-h-48 mx-auto rounded-lg mb-4"
                         />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeImage();
-                          }}
-                          className="absolute -top-2 -right-2 bg-[#FF6B35] rounded-full p-2 hover:bg-[#E5532D] transition-colors"
-                        >
-                          <X className="h-4 w-4 text-white" />
-                        </button>
+                        {!saving && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage();
+                            }}
+                            className="absolute -top-2 -right-2 bg-[#FF6B35] rounded-full p-2 hover:bg-[#E5532D] transition-colors"
+                          >
+                            <X className="h-4 w-4 text-white" />
+                          </button>
+                        )}
                         <p className="text-sm text-[#8F98A0]">Click to change image</p>
                       </div>
                     ) : (
@@ -645,7 +754,7 @@ function GameForm({ game, onSave, onCancel }: {
                     )}
                   </div>
 
-                  {!imagePreview && (
+                  {!imagePreview && !saving && (
                     <Button
                       type="button"
                       variant="outline"
@@ -664,16 +773,24 @@ function GameForm({ game, onSave, onCancel }: {
             <div className="flex gap-4 pt-6 border-t border-[#4C6B8A]">
               <Button 
                 type="submit" 
-                className="flex-1 bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:from-[#66C0F4] hover:to-[#4B9CD3] h-12 rounded-lg font-semibold text-lg shadow-lg shadow-[#66C0F4]/25 transition-all duration-300"
-                disabled={!formData.name || !formData.description || !formData.category || formData.price <= 0}
+                className="flex-1 bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:from-[#66C0F4] hover:to-[#4B9CD3] h-12 rounded-lg font-semibold text-lg shadow-lg shadow-[#66C0F4]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!formData.name || !formData.description || !formData.category || formData.price <= 0 || saving}
               >
-                {game ? 'Update Game' : 'Add Game to Library'}
+                {saving ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    {game ? 'Updating...' : 'Adding...'}
+                  </>
+                ) : (
+                  game ? 'Update Game' : 'Add Game to Library'
+                )}
               </Button>
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={onCancel} 
-                className="border-[#4C6B8A] text-[#8F98A0] hover:bg-[#2A475E] hover:text-white h-12 rounded-lg font-semibold px-8"
+                className="border-[#4C6B8A] text-[#8F98A0] hover:bg-[#2A475E] hover:text-white h-12 rounded-lg font-semibold px-8 disabled:opacity-50"
+                disabled={saving}
               >
                 Cancel
               </Button>

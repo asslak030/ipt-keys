@@ -28,15 +28,7 @@ export const ourFileRouter = {
       console.log("✅ Upload complete for user:", metadata.userId);
       console.log("🖼️ File URL:", file.ufsUrl);
 
-      await db.insert(heroes).values({
-        gameName: metadata.gameName,
-        category: metadata.category,
-        price: metadata.price,
-        description: metadata.description ?? "",
-        imageUrl: file.ufsUrl,
-        userId: metadata.userId,
-      });
-
+     
       return {
         uploadedBy: metadata.userId,
         imageUrl: file.ufsUrl,

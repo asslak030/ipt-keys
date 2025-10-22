@@ -9,12 +9,8 @@ const f = createUploadthing();
 
 export const ourFileRouter = {
   imageUploader: f({
-    image: {
-      maxFileSize: "4MB",
-      maxFileCount: 1,
-    },
+    image: { maxFileSize: "4MB", maxFileCount: 1 },
   })
-    // ✅ Input schema for required game info
     .input(
       z.object({
         gameName: z.string().min(2, "Game name is required"),
@@ -23,35 +19,28 @@ export const ourFileRouter = {
         description: z.string().optional(),
       }),
     )
-
-    // ✅ Auth middleware (runs before upload)
     .middleware(async ({ req, input }) => {
       const { userId } = await auth();
-
       if (!userId) throw new UploadThingError("Unauthorized");
-
-      // Pass userId and form data to next step
       return { userId, ...input };
     })
-
-    // ✅ Runs after successful upload
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("✅ Upload complete for user:", metadata.userId);
-      console.log("📸 File URL:", file.ufsUrl);
+      console.log("🖼️ File URL:", file.ufsUrl);
 
-      // ✅ Insert into heroes table
       await db.insert(heroes).values({
         gameName: metadata.gameName,
         category: metadata.category,
         price: metadata.price,
         description: metadata.description ?? "",
-        gameImage: file.ufsUrl,
+        imageUrl: file.ufsUrl,
+        userId: metadata.userId,
       });
 
       return {
         uploadedBy: metadata.userId,
         imageUrl: file.ufsUrl,
-        message: "Game added successfully!",
+        message: "Game successfully uploaded!",
       };
     }),
 } satisfies FileRouter;

@@ -34,6 +34,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
+import { useUploadThing } from "~/utils/uploadthing";
 
 type Game = {
   id: string;
@@ -553,7 +554,24 @@ function GameForm({ game, onSave, onCancel, saving }: {
   });
 
   const [imagePreview, setImagePreview] = useState(game?.image || "");
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { startUpload } = useUploadThing("imageUploader", {
+    onClientUploadComplete: (res) => {
+      if (res && res[0]) {
+        const imageUrl = res[0].ufsUrl;
+        setFormData(prev => ({ ...prev, image: imageUrl }));
+        setImagePreview(imageUrl);
+      }
+      setUploading(false);
+    },
+    onUploadError: (error: Error) => {
+      console.error("Upload error:", error);
+      alert("Failed to upload image. Please try again.");
+      setUploading(false);
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -565,29 +583,36 @@ function GameForm({ game, onSave, onCancel, saving }: {
     setFormData({ ...formData, price: priceValue });
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file (JPEG, PNG, etc.)');
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Please select an image smaller than 5MB');
+      if (file.size > 4 * 1024 * 1024) {
+        alert('Please select an image smaller than 4MB');
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64 = e.target?.result as string;
-        setFormData({ ...formData, image: base64 });
-        setImagePreview(base64);
-      };
-      reader.readAsDataURL(file);
+      setUploading(true);
+      
+      try {
+        await startUpload([file], {
+          gameName: formData.name || "Untitled Game",
+          category: formData.category || "Uncategorized",
+          price: formData.price.toString(),
+          description: formData.description,
+        });
+      } catch (error) {
+        console.error('Upload failed:', error);
+        alert('Failed to upload image. Please try again.');
+        setUploading(false);
+      }
     }
   };
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
     if (file) {
@@ -595,18 +620,25 @@ function GameForm({ game, onSave, onCancel, saving }: {
         alert('Please drop an image file (JPEG, PNG, etc.)');
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Please drop an image smaller than 5MB');
+      if (file.size > 4 * 1024 * 1024) {
+        alert('Please drop an image smaller than 4MB');
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64 = e.target?.result as string;
-        setFormData({ ...formData, image: base64 });
-        setImagePreview(base64);
-      };
-      reader.readAsDataURL(file);
+      setUploading(true);
+      
+      try {
+        await startUpload([file], {
+          gameName: formData.name || "Untitled Game",
+          category: formData.category || "Uncategorized",
+          price: formData.price.toString(),
+          description: formData.description,
+        });
+      } catch (error) {
+        console.error('Upload failed:', error);
+        alert('Failed to upload image. Please try again.');
+        setUploading(false);
+      }
     }
   };
 
@@ -650,7 +682,7 @@ function GameForm({ game, onSave, onCancel, saving }: {
                     className="bg-[#171D25] border-[#4C6B8A] text-white h-12 rounded-lg focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
                     placeholder="Enter game name"
                     required
-                    disabled={saving}
+                    disabled={saving || uploading}
                   />
                 </div>
                 
@@ -662,7 +694,7 @@ function GameForm({ game, onSave, onCancel, saving }: {
                     className="bg-[#171D25] border-[#4C6B8A] text-white rounded-lg focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50 min-h-[120px]"
                     placeholder="Enter game description"
                     required
-                    disabled={saving}
+                    disabled={saving || uploading}
                   />
                 </div>
                 
@@ -674,7 +706,7 @@ function GameForm({ game, onSave, onCancel, saving }: {
                     className="bg-[#171D25] border-[#4C6B8A] text-white h-12 rounded-lg focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
                     placeholder="e.g., RPG, FPS, Sports"
                     required
-                    disabled={saving}
+                    disabled={saving || uploading}
                   />
                 </div>
                 
@@ -691,7 +723,7 @@ function GameForm({ game, onSave, onCancel, saving }: {
                       className="bg-[#171D25] border-[#4C6B8A] text-white h-12 rounded-lg pl-12 focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
                       placeholder="0.00"
                       required
-                      disabled={saving}
+                      disabled={saving || uploading}
                     />
                   </div>
                 </div>
@@ -708,25 +740,31 @@ function GameForm({ game, onSave, onCancel, saving }: {
                     onChange={handleFileSelect}
                     accept="image/*"
                     className="hidden"
-                    disabled={saving}
+                    disabled={saving || uploading}
                   />
 
                   <div
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
-                    onClick={saving ? undefined : triggerFileInput}
+                    onClick={(saving || uploading) ? undefined : triggerFileInput}
                     className={`border-2 border-dashed border-[#4C6B8A] rounded-lg p-6 bg-[#171D25] min-h-[250px] flex flex-col items-center justify-center transition-all duration-300 group ${
-                      saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#66C0F4] hover:bg-[#1B2838]'
+                      (saving || uploading) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#66C0F4] hover:bg-[#1B2838]'
                     }`}
                   >
-                    {imagePreview ? (
+                    {uploading ? (
+                      <div className="text-center">
+                        <Loader2 className="h-8 w-8 text-[#66C0F4] animate-spin mx-auto mb-4" />
+                        <p className="text-[#66C0F4] font-semibold">Uploading image...</p>
+                        <p className="text-sm text-[#8F98A0] mt-2">Please wait</p>
+                      </div>
+                    ) : imagePreview ? (
                       <div className="text-center relative w-full">
                         <img 
                           src={imagePreview} 
                           alt="Preview" 
                           className="max-w-full max-h-48 mx-auto rounded-lg mb-4"
                         />
-                        {!saving && (
+                        {!(saving || uploading) && (
                           <button
                             type="button"
                             onClick={(e) => {
@@ -748,17 +786,18 @@ function GameForm({ game, onSave, onCancel, saving }: {
                         <p className="font-semibold mb-2">Upload Game Image</p>
                         <p className="text-sm mb-1">Click to browse or drag and drop</p>
                         <p className="text-xs text-[#8F98A0]">
-                          Supports: JPG, PNG, WebP (Max 5MB)
+                          Supports: JPG, PNG, WebP (Max 4MB)
                         </p>
                       </div>
                     )}
                   </div>
 
-                  {!imagePreview && !saving && (
+                  {!imagePreview && !uploading && (
                     <Button
                       type="button"
                       variant="outline"
                       onClick={triggerFileInput}
+                      disabled={saving || uploading}
                       className="w-full mt-4 border-[#66C0F4] text-[#66C0F4] hover:bg-[#66C0F4]/20 h-12 rounded-lg font-semibold"
                     >
                       <Upload className="h-4 w-4 mr-2" />
@@ -774,12 +813,17 @@ function GameForm({ game, onSave, onCancel, saving }: {
               <Button 
                 type="submit" 
                 className="flex-1 bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:from-[#66C0F4] hover:to-[#4B9CD3] h-12 rounded-lg font-semibold text-lg shadow-lg shadow-[#66C0F4]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!formData.name || !formData.description || !formData.category || formData.price <= 0 || saving}
+                disabled={!formData.name || !formData.description || !formData.category || formData.price <= 0 || saving || uploading}
               >
                 {saving ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                     {game ? 'Updating...' : 'Adding...'}
+                  </>
+                ) : uploading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Uploading Image...
                   </>
                 ) : (
                   game ? 'Update Game' : 'Add Game to Library'
@@ -790,7 +834,7 @@ function GameForm({ game, onSave, onCancel, saving }: {
                 variant="outline" 
                 onClick={onCancel} 
                 className="border-[#4C6B8A] text-[#8F98A0] hover:bg-[#2A475E] hover:text-white h-12 rounded-lg font-semibold px-8 disabled:opacity-50"
-                disabled={saving}
+                disabled={saving || uploading}
               >
                 Cancel
               </Button>

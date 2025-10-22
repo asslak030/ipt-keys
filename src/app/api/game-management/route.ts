@@ -1,20 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '~/server/db';
 import { heroes } from '~/server/db/schema';
+import { auth } from '@clerk/nextjs/server';
 
-// GET - Fetch all games
+// GET - Fetch all games for the current user
 export async function GET() {
   try {
-    const allGames = await db.select().from(heroes);
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const allGames = await db.select().from(heroes).where(eq => eq(heroes.userId, userId));
     
     // Map database fields to frontend expected format
     const games = allGames.map(game => ({
       id: game.id.toString(),
-      name: game.gameName || '',
-      description: game.description || '',
-      category: game.category || '',
-      price: parseFloat(game.price || '0'),
-      image: game.gameImage || ''
+      name: game.gameName,
+      description: game.description,
+      category: game.category,
+      price: parseFloat(game.price),
+      image: game.imageUrl
     }));
 
     return NextResponse.json(games);
@@ -30,6 +36,11 @@ export async function GET() {
 // POST - Create a new game
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     
     const { name, description, category, price, image } = body;
@@ -48,7 +59,8 @@ export async function POST(request: NextRequest) {
       description,
       category,
       price: price.toString(),
-      gameImage: image || ''
+      imageUrl: image,
+      userId: userId
     }).returning();
 
     // Check if newGame was returned
@@ -62,11 +74,11 @@ export async function POST(request: NextRequest) {
     // Return in frontend expected format
     const response = {
       id: newGame.id.toString(),
-      name: newGame.gameName || '',
-      description: newGame.description || '',
-      category: newGame.category || '',
-      price: parseFloat(newGame.price || '0'),
-      image: newGame.gameImage || ''
+      name: newGame.gameName,
+      description: newGame.description,
+      category: newGame.category,
+      price: parseFloat(newGame.price),
+      image: newGame.imageUrl
     };
 
     return NextResponse.json(response, { status: 201 });

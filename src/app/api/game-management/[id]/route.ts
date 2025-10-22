@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '~/server/db';
 import { heroes } from '~/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
 
 // GET - Fetch single game by ID
 export async function GET(
@@ -9,6 +10,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const gameId = parseInt(params.id);
     
     if (isNaN(gameId)) {
@@ -29,14 +35,22 @@ export async function GET(
       );
     }
 
+    // Check if the game belongs to the current user
+    if (game.userId !== userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized access to game' },
+        { status: 403 }
+      );
+    }
+
     // Map to frontend format
     const response = {
       id: game.id.toString(),
-      name: game.gameName || '',
-      description: game.description || '',
-      category: game.category || '',
-      price: parseFloat(game.price || '0'),
-      image: game.gameImage || ''
+      name: game.gameName,
+      description: game.description,
+      category: game.category,
+      price: parseFloat(game.price),
+      image: game.imageUrl
     };
 
     return NextResponse.json(response);
@@ -55,6 +69,11 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const gameId = parseInt(params.id);
     
     if (isNaN(gameId)) {
@@ -67,7 +86,15 @@ export async function PUT(
     const body = await request.json();
     const { name, description, category, price, image } = body;
 
-    // Check if game exists
+    // Validate required fields
+    if (!name || !description || !category || price === undefined) {
+      return NextResponse.json(
+        { error: 'Missing required fields: name, description, category, price' },
+        { status: 400 }
+      );
+    }
+
+    // Check if game exists and belongs to user
     const [existingGame] = await db.select()
       .from(heroes)
       .where(eq(heroes.id, gameId));
@@ -79,6 +106,13 @@ export async function PUT(
       );
     }
 
+    if (existingGame.userId !== userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized access to game' },
+        { status: 403 }
+      );
+    }
+
     // Update game
     const [updatedGame] = await db.update(heroes)
       .set({
@@ -86,7 +120,7 @@ export async function PUT(
         description,
         category,
         price: price.toString(),
-        gameImage: image || ''
+        imageUrl: image
       })
       .where(eq(heroes.id, gameId))
       .returning();
@@ -101,11 +135,11 @@ export async function PUT(
     // Return in frontend format
     const response = {
       id: updatedGame.id.toString(),
-      name: updatedGame.gameName || '',
-      description: updatedGame.description || '',
-      category: updatedGame.category || '',
-      price: parseFloat(updatedGame.price || '0'),
-      image: updatedGame.gameImage || ''
+      name: updatedGame.gameName,
+      description: updatedGame.description,
+      category: updatedGame.category,
+      price: parseFloat(updatedGame.price),
+      image: updatedGame.imageUrl
     };
 
     return NextResponse.json(response);
@@ -124,6 +158,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const gameId = parseInt(params.id);
     
     if (isNaN(gameId)) {
@@ -133,7 +172,7 @@ export async function DELETE(
       );
     }
 
-    // Check if game exists
+    // Check if game exists and belongs to user
     const [existingGame] = await db.select()
       .from(heroes)
       .where(eq(heroes.id, gameId));
@@ -142,6 +181,13 @@ export async function DELETE(
       return NextResponse.json(
         { error: 'Game not found' },
         { status: 404 }
+      );
+    }
+
+    if (existingGame.userId !== userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized access to game' },
+        { status: 403 }
       );
     }
 

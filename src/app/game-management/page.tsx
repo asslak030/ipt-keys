@@ -234,7 +234,7 @@ export default function GamesPage() {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-[#66C0F4] to-[#90BA3C] bg-clip-text text-transparent">
-                    GAMEVAULT
+                    HEAVENS PLAY
                   </h1>
                   <p className="text-sm text-[#8F98A0]">Game Management System</p>
                 </div>

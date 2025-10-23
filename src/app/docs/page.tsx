@@ -156,7 +156,7 @@ export default function DocsPage() {
                 </div>
                 <div>
                   <h1 className="bg-gradient-to-r from-[#66C0F4] to-[#90BA3C] bg-clip-text text-3xl font-bold text-transparent">
-                    GameVault API
+                    HeavensPlay API Key
                   </h1>
                   <p className="text-sm text-[#8F98A0]">Developer Documentation</p>
                 </div>

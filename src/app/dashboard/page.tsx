@@ -124,7 +124,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h1 className="bg-gradient-to-r from-[#66C0F4] to-[#90BA3C] bg-clip-text text-3xl font-bold text-transparent">
-                  Steam API Manager
+                  HeavensPlay API Manager
                 </h1>
                 <p className="text-sm text-[#8F98A0]">Developer Portal</p>
               </div>
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                     Welcome, {user?.firstName || "Developer"}!
                   </CardTitle>
                   <CardDescription className="text-[#8F98A0]">
-                    Steam Web API Integration Dashboard
+                    Heavens API Key Integration Dashboard
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -249,13 +249,13 @@ export default function DashboardPage() {
                       <div>
                         <p className="font-medium text-[#C7D5E0]">Quick Start Guide</p>
                         <p className="text-sm text-[#8F98A0]">
-                          Generate your Steam Web API key to begin integration
+                          Generate your Heavens Web API key to begin integration
                         </p>
                       </div>
                     </div>
                   </div>
                   <p className="text-sm text-[#8F98A0]">
-                    Access Steam's comprehensive APIs for game data, user profiles, 
+                    Access Heavens's comprehensive APIs for game data, user profiles, 
                     and community features. Manage your keys securely and follow Steam's 
                     API guidelines.
                   </p>
@@ -272,10 +272,10 @@ export default function DashboardPage() {
               <Card className="h-full border-[#4C6B8A] bg-[#1B2838] shadow-lg">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-xl text-[#C7D5E0]">
-                    Generate Steam API Key
+                    Generate Heavens API Key
                   </CardTitle>
                   <CardDescription className="text-[#8F98A0]">
-                    Create new access keys for Steam Web API
+                    Create new access keys for HeavensPlay Web API
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -286,13 +286,13 @@ export default function DashboardPage() {
                         aria-label="Create API Key"
                       >
                         <Plus className="h-5 w-5" />
-                        Generate Steam Key
+                        Generate Heavens Key
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="border-[#4C6B8A] bg-[#1B2838] text-[#C7D5E0]">
                       <DialogHeader>
                         <DialogTitle className="text-[#C7D5E0]">
-                          Create Steam API Key
+                          Create Heavens API Key
                         </DialogTitle>
                         <DialogDescription className="text-[#8F98A0]">
                           Name your key for identification
@@ -337,7 +337,7 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-3">
                           <Key className="h-5 w-5 text-[#66C0F4]" />
                           <p className="font-medium text-[#66C0F4]">
-                            New Steam API Key Created
+                            New Heavens API Key Created
                           </p>
                         </div>
                         <div className="mt-3 flex items-center gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-3">
@@ -368,10 +368,10 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-2xl font-bold text-[#C7D5E0]">
-                      Your Steam API Keys
+                      Your Heavens API Keys
                     </CardTitle>
                     <CardDescription className="text-[#8F98A0]">
-                      Manage and monitor your Steam Web API access keys
+                      Manage and monitor your HeavensPlay Web API access keys
                     </CardDescription>
                   </div>
                   <Badge
@@ -459,7 +459,7 @@ export default function DashboardPage() {
                           No Steam API Keys
                         </h3>
                         <p className="text-[#8F98A0] max-w-sm">
-                          Generate your first Steam Web API key to start integrating with Steam services
+                          Generate your first HeavensPlay Web API key to start integrating with Steam services
                         </p>
                       </div>
                     </motion.div>
@@ -478,7 +478,7 @@ export default function DashboardPage() {
           >
             <div className="text-center">
               <p className="text-sm text-[#8F98A0] mb-2">
-                Need help with Steam Web API integration?
+                Need help with HeavensPlay Web API integration?
               </p>
               <div className="flex justify-center gap-4">
                 <Link
@@ -486,7 +486,7 @@ export default function DashboardPage() {
                   className="inline-flex items-center gap-2 text-[#66C0F4] hover:text-[#90BA3C] transition-colors font-medium"
                 >
                   <BookOpen className="h-4 w-4" />
-                  Steam API Documentation
+                  Heavens API Documentation
                 </Link>
                 <span className="text-[#4C6B8A]">|</span>
                 <Link

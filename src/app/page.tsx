@@ -50,7 +50,7 @@ export default function Page() {
             <Gamepad2 className="h-6 w-6 text-[#66C0F4]" />
           </div>
           <h1 className="bg-gradient-to-r from-[#66C0F4] to-[#90BA3C] bg-clip-text text-2xl font-bold text-transparent">
-            GameVault
+            HeavensPlay
           </h1>
         </div>
 
@@ -84,7 +84,7 @@ export default function Page() {
           </h2>
 
           <p className="mx-auto max-w-lg text-base text-gray-300 md:mx-0 md:text-lg">
-            GameVault helps gamers organize, manage, and discover their favorite
+            HeavensPlay Management helps gamers organize, manage, and discover their favorite
             titles across all platforms. Build your ultimate gaming collection
             with smart features.
           </p>
@@ -123,8 +123,8 @@ export default function Page() {
               />
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/60 to-transparent"></div>
               <div className="absolute bottom-6 left-6 right-6 text-white">
-                <p className="text-xl font-semibold">Your Gaming Universe</p>
-                <p className="text-base text-gray-200">All in one place</p>
+                <p className="text-xl font-semibold"></p>
+                <p className="text-base text-gray-200"></p>
               </div>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function Page() {
         <div className="mx-auto max-w-6xl space-y-12 text-center">
           <div>
             <h3 className="text-3xl font-bold text-white md:text-4xl">
-              Why Gamers Choose GameVault
+              Why Gamers Choose HeavensPlay
             </h3>
             <p className="mx-auto mt-4 max-w-2xl text-gray-400">
               The ultimate platform for managing your gaming library across all
@@ -264,7 +264,7 @@ export default function Page() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#66C0F4]/20">
                   <ShoppingBag className="h-5 w-5 text-[#66C0F4]" />
                 </div>
-                <span className="text-white">support@gamevault.com</span>
+                <span className="text-white">support@heavensplay.com</span>
               </div>
 
               <div className="flex items-center space-x-3 rounded-lg border border-[#3C5A78] bg-[#171D25]/60 p-4 backdrop-blur-sm">

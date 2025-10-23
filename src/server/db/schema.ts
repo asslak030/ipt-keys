@@ -30,13 +30,14 @@ export const apiKeys = createTable("api_keys", {
   revoked: boolean("revoked").notNull().default(false),
 });
 
+// === HEROES/GAMES TABLE ===
 export const heroes = createTable("heroes", {
   id: serial("id").primaryKey(),
-
   gameName: varchar("game_name", { length: 255 }),
   category: varchar("category", { length: 100 }),
-  price: numeric("price", { precision: 5, scale: 2 }),
+  price: numeric("price", { precision: 10, scale: 2 }),
   imageUrl: varchar("image_url", { length: 512 }), 
   userId: varchar("user_id", { length: 64 }).notNull(),
   description: text("description"),
+  platform: varchar("platform", { length: 50 }).notNull(), // No default value
 });

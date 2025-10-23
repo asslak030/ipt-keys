@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🧩 Query the database
+    // 🧩 Query the database - INCLUDING PLATFORM FIELD
     const games = await db
       .select({
         id: heroes.id,
@@ -62,12 +62,26 @@ export async function POST(req: NextRequest) {
         price: heroes.price,
         description: heroes.description,
         image_url: heroes.imageUrl,
+        platform: heroes.platform, // ✅ ADDED THIS LINE
+        user_id: heroes.userId, // ✅ Also added for completeness
       })
       .from(heroes)
       .where(ilike(heroes.gameName, `%${searchQuery}%`));
 
+    // 🧩 Convert price from string to number for frontend
+    const gamesWithNumericPrice = games.map(game => ({
+      ...game,
+      price: game.price ? parseFloat(game.price) : 0
+    }));
+
+    console.log("🔍 [POST] Search results with platforms:", gamesWithNumericPrice.map(g => ({
+      name: g.game_name,
+      platform: g.platform,
+      price: g.price
+    })));
+
     // 🧩 Handle no matches
-    if (games.length === 0) {
+    if (gamesWithNumericPrice.length === 0) {
       return NextResponse.json(
         { error: "No games found with the given name." },
         {
@@ -85,7 +99,7 @@ export async function POST(req: NextRequest) {
       {
         ok: true,
         message: "Games found successfully.",
-        game: games,
+        games: gamesWithNumericPrice, // ✅ Changed from 'game' to 'games' for consistency
         keyId: result.keyId,
       },
       {

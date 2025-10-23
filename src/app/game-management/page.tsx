@@ -43,7 +43,32 @@ type Game = {
   category: string;
   price: number;
   image: string;
+  platform: string;
 };
+
+// Fixed categories and platforms
+const FIXED_CATEGORIES = [
+  "Survival",
+  "Racing", 
+  "RPG",
+  "Strategy",
+  "Shooter",
+  "Adventure",
+  "FPS",
+  "Puzzle",
+  "Sports",
+  "Action",
+  "Horror",
+  "Card Games",
+  "Simulation",
+  "MMO"
+];
+
+const PLATFORMS = [
+  "PC",
+  "X-Box", 
+  "Nintendo"
+];
 
 export default function GamesPage() {
   const [games, setGames] = useState<Game[]>([]);
@@ -52,6 +77,7 @@ export default function GamesPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -81,12 +107,15 @@ export default function GamesPage() {
     }
   };
 
-  const categories = ["all", ...new Set(games.map(game => game.category))];
+  const categories = ["all", ...FIXED_CATEGORIES, ...new Set(games.map(game => game.category).filter(cat => !FIXED_CATEGORIES.includes(cat)))];
+  const platforms = ["all", ...PLATFORMS];
 
   const filteredGames = games.filter(game =>
     (game.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    game.category.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (selectedCategory === "all" || game.category === selectedCategory)
+    game.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    game.platform.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (selectedCategory === "all" || game.category === selectedCategory) &&
+    (selectedPlatform === "all" || game.platform === selectedPlatform)
   );
 
   const handleDelete = async (id: string) => {
@@ -115,46 +144,61 @@ export default function GamesPage() {
   };
 
   const handleSave = async (gameData: Omit<Game, "id">) => {
-    try {
-      setSaving(true);
-      const url = editingGame 
-        ? `/api/game-management/${editingGame.id}`
-        : '/api/game-management';
+  console.log("🔄 Starting save process...", gameData);
+  
+  try {
+    setSaving(true);
+    const url = editingGame 
+      ? `/api/game-management/${editingGame.id}`
+      : '/api/game-management';
+    
+    const method = editingGame ? 'PUT' : 'POST';
+
+    console.log('📤 Making request to:', url, 'Method:', method);
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(gameData),
+    });
+
+    console.log('📥 Response status:', response.status);
+
+    const responseText = await response.text();
+    console.log('📥 Response text:', responseText);
+
+    if (response.ok) {
+      const savedGame = JSON.parse(responseText);
+      console.log('✅ Save successful:', savedGame);
       
-      const method = editingGame ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(gameData),
-      });
-
-      if (response.ok) {
-        const savedGame = await response.json();
-        
-        if (editingGame) {
-          setGames(games.map(game => 
-            game.id === editingGame.id ? savedGame : game
-          ));
-        } else {
-          setGames([...games, savedGame]);
-        }
-        
-        setEditingGame(null);
-        setIsCreating(false);
+      if (editingGame) {
+        setGames(games.map(game => 
+          game.id === editingGame.id ? savedGame : game
+        ));
       } else {
-        const error = await response.json();
-        alert(`Failed to save game: ${error.error}`);
+        setGames([...games, savedGame]);
       }
-    } catch (error) {
-      console.error('Error saving game:', error);
-      alert('Failed to save game. Please try again.');
-    } finally {
-      setSaving(false);
+      
+      setEditingGame(null);
+      setIsCreating(false);
+    } else {
+      console.error('❌ Error response:', responseText);
+      try {
+        const error = JSON.parse(responseText);
+        alert(`Failed to save game: ${error.error}`);
+      } catch {
+        alert(`Failed to save game: ${responseText}`);
+      }
     }
-  };
+  } catch (error) {
+    console.error('💥 Network error:', error);
+    alert('Failed to save game. Please check your connection and try again.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   if (loading) {
     return (
@@ -264,11 +308,11 @@ export default function GamesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#8B5CF6] font-semibold">Filtered</p>
-                  <p className="text-3xl font-bold text-white mt-2">{filteredGames.length}</p>
+                  <p className="text-sm text-[#8B5CF6] font-semibold">Platforms</p>
+                  <p className="text-3xl font-bold text-white mt-2">{platforms.length - 1}</p>
                 </div>
                 <div className="p-3 bg-[#8B5CF6]/20 rounded-2xl">
-                  <Filter className="h-6 w-6 text-[#8B5CF6]" />
+                  <Gamepad2 className="h-6 w-6 text-[#8B5CF6]" />
                 </div>
               </div>
             </CardContent>
@@ -284,7 +328,7 @@ export default function GamesPage() {
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8F98A0] h-4 w-4" />
                   <Input
-                    placeholder="Search games by name or category..."
+                    placeholder="Search games by name, category, or platform..."
                     className="pl-12 bg-[#171D25] border-[#4C6B8A] text-white placeholder-[#8F98A0] h-12 rounded-xl focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -303,6 +347,19 @@ export default function GamesPage() {
                   {categories.map(category => (
                     <option key={category} value={category}>
                       {category === "all" ? "All Categories" : category}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Platform Filter */}
+                <select 
+                  value={selectedPlatform}
+                  onChange={(e) => setSelectedPlatform(e.target.value)}
+                  className="bg-[#171D25] border border-[#4C6B8A] text-white rounded-xl px-4 py-2 focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
+                >
+                  {platforms.map(platform => (
+                    <option key={platform} value={platform}>
+                      {platform === "all" ? "All Platforms" : platform}
                     </option>
                   ))}
                 </select>
@@ -383,6 +440,7 @@ export default function GamesPage() {
                       <TableHead className="text-[#66C0F4] font-semibold py-4">Game</TableHead>
                       <TableHead className="text-[#66C0F4] font-semibold">Description</TableHead>
                       <TableHead className="text-[#66C0F4] font-semibold">Category</TableHead>
+                      <TableHead className="text-[#66C0F4] font-semibold">Platform</TableHead>
                       <TableHead className="text-[#66C0F4] font-semibold">Price</TableHead>
                       <TableHead className="text-[#66C0F4] font-semibold text-right">Actions</TableHead>
                     </TableRow>
@@ -414,6 +472,11 @@ export default function GamesPage() {
                         <TableCell>
                           <Badge className="bg-[#90BA3C]/20 text-[#90BA3C] border-[#90BA3C]/30 font-medium">
                             {game.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/30 font-medium">
+                            {game.platform}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -475,9 +538,12 @@ export default function GamesPage() {
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1B2838] to-transparent"></div>
                     </div>
-                    <div className="absolute top-4 right-4">
+                    <div className="absolute top-4 right-4 flex flex-col gap-2">
                       <Badge className="bg-[#90BA3C]/20 text-[#90BA3C] border-[#90BA3C]/30">
                         {game.category}
+                      </Badge>
+                      <Badge className="bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/30">
+                        {game.platform}
                       </Badge>
                     </div>
                     <div className="absolute bottom-4 left-4 right-4">
@@ -550,7 +616,8 @@ function GameForm({ game, onSave, onCancel, saving }: {
     description: game?.description || "",
     category: game?.category || "",
     price: game?.price || 0,
-    image: game?.image || ""
+    image: game?.image || "",
+    platform: game?.platform || ""
   });
 
   const [imagePreview, setImagePreview] = useState(game?.image || "");
@@ -700,14 +767,38 @@ function GameForm({ game, onSave, onCancel, saving }: {
                 
                 <div>
                   <label className="text-sm font-semibold text-[#66C0F4] mb-2 block">Category *</label>
-                  <Input
+                  <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="bg-[#171D25] border-[#4C6B8A] text-white h-12 rounded-lg focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50"
-                    placeholder="e.g., RPG, FPS, Sports"
+                    className="w-full bg-[#171D25] border border-[#4C6B8A] text-white h-12 rounded-lg px-4 focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50 disabled:opacity-50"
                     required
                     disabled={saving || uploading}
-                  />
+                  >
+                    <option value="">Select a category</option>
+                    {FIXED_CATEGORIES.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-[#66C0F4] mb-2 block">Platform *</label>
+                  <select
+                    value={formData.platform}
+                    onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                    className="w-full bg-[#171D25] border border-[#4C6B8A] text-white h-12 rounded-lg px-4 focus:ring-2 focus:ring-[#66C0F4]/50 focus:border-[#66C0F4]/50 disabled:opacity-50"
+                    required
+                    disabled={saving || uploading}
+                  >
+                    <option value="">Select a platform</option>
+                    {PLATFORMS.map((platform) => (
+                      <option key={platform} value={platform}>
+                        {platform}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
@@ -813,7 +904,7 @@ function GameForm({ game, onSave, onCancel, saving }: {
               <Button 
                 type="submit" 
                 className="flex-1 bg-gradient-to-r from-[#66C0F4] to-[#4B9CD3] text-white hover:from-[#66C0F4] hover:to-[#4B9CD3] h-12 rounded-lg font-semibold text-lg shadow-lg shadow-[#66C0F4]/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!formData.name || !formData.description || !formData.category || formData.price <= 0 || saving || uploading}
+                disabled={!formData.name || !formData.description || !formData.category || !formData.platform || formData.price <= 0 || saving || uploading}
               >
                 {saving ? (
                   <>

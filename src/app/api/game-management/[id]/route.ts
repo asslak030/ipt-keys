@@ -46,6 +46,7 @@ export async function GET(
       category: game.category,
       price: parseFloat(game.price as unknown as string),
       image: game.imageUrl,
+      platform: game.platform, // Added platform field
     };
 
     return NextResponse.json(response);
@@ -74,11 +75,12 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, description, category, price, image } = body;
+    const { name, description, category, price, image, platform } = body; // Added platform
 
-    if (!name || !description || !category || price === undefined) {
+    // Updated validation to include platform
+    if (!name || !description || !category || price === undefined || !platform) {
       return NextResponse.json(
-        { error: "Missing required fields: name, description, category, price" },
+        { error: "Missing required fields: name, description, category, price, platform" },
         { status: 400 }
       );
     }
@@ -104,6 +106,7 @@ export async function PUT(
         category,
         price: price.toString(),
         imageUrl: image,
+        platform: platform, // Added platform field
       })
       .where(eq(heroes.id, gameId))
       .returning();
@@ -119,6 +122,7 @@ export async function PUT(
       category: updatedGame.category,
       price: parseFloat(updatedGame.price as unknown as string),
       image: updatedGame.imageUrl,
+      platform: updatedGame.platform, // Added platform field
     };
 
     return NextResponse.json(response);

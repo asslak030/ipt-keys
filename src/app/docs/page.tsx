@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { Gamepad2, BookOpen, Terminal, ArrowLeft, Code, Server } from "lucide-react";
+import { Gamepad2, BookOpen, Terminal, ArrowLeft, Code, Server, Monitor, Gamepad, Joystick } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import AuthGuard from "../component/AuthGuard";
@@ -24,6 +24,7 @@ interface Game {
   price: number;
   description: string;
   image_url?: string;
+  platform: string;
 }
 
 export default function DocsPage() {
@@ -33,57 +34,96 @@ export default function DocsPage() {
   const [postResults, setPostResults] = useState<Game[]>([]);
   const [postBody, setPostBody] = useState("");
 
+  // ✅ SAFE Helper function to get platform icon
+  const getPlatformIcon = (platform: string | undefined | null) => {
+    if (!platform) {
+      return <Monitor size={16} className="text-gray-500" />;
+    }
+    
+    const platformLower = platform.toLowerCase();
+    if (platformLower.includes("pc")) {
+      return <Monitor size={16} className="text-blue-500" />;
+    } else if (platformLower.includes("x-box") || platformLower.includes("xbox")) {
+      return <Gamepad size={16} className="text-green-500" />;
+    } else if (platformLower.includes("nintendo")) {
+      return <Joystick size={16} className="text-red-500" />;
+    } else {
+      return <Monitor size={16} className="text-gray-500" />;
+    }
+  };
+
+  // ✅ SAFE platform display function
+  const getPlatformDisplay = (platform: string | undefined | null) => {
+    return platform || "Unknown Platform";
+  };
+
   // GET all games
   async function runGET() {
-    const res = await fetch(`${baseUrl}/api/ping`, {
-      headers: { "x-api-key": key },
-    });
+    try {
+      const res = await fetch(`${baseUrl}/api/ping`, {
+        headers: { "x-api-key": key },
+      });
 
-    const data = await res.json();
-    setOut(JSON.stringify(data, null, 2));
+      const data = await res.json();
+      setOut(JSON.stringify(data, null, 2));
 
-    if (data.data) {
-      // Map response to consistent Game type
-      setGamesData(
-        data.data.map((g: any) => ({
-          id: g.id,
-          game_name: g.game_name,
-          category: g.category,
-          price: g.price,
-          description: g.description,
-          image_url: g.image_url,
-        }))
-      );
-      setPostResults([]);
-    } else {
+      if (data.data) {
+        // ✅ SAFE data mapping with platform validation
+        setGamesData(
+          data.data.map((g: any) => ({
+            id: g.id || 0,
+            game_name: g.game_name || "Untitled Game",
+            category: g.category || "Uncategorized",
+            price: typeof g.price === 'number' ? g.price : 0,
+            description: g.description || "",
+            image_url: g.image_url,
+            platform: g.platform || "Unknown Platform",
+          }))
+        );
+        setPostResults([]);
+      } else {
+        setGamesData([]);
+      }
+    } catch (error) {
+      console.error("GET request failed:", error);
+      setOut(JSON.stringify({ error: "GET request failed" }, null, 2));
       setGamesData([]);
     }
   }
 
   // POST search game by name
   async function runPOST() {
-    const res = await fetch(`${baseUrl}/api/echo`, {
-      method: "POST",
-      headers: { "x-api-key": key, "Content-Type": "application/json" },
-      body: JSON.stringify({ postBody }),
-    });
+    try {
+      const res = await fetch(`${baseUrl}/api/echo`, {
+        method: "POST",
+        headers: { "x-api-key": key, "Content-Type": "application/json" },
+        body: JSON.stringify({ postBody }),
+      });
 
-    const data = await res.json();
-    setOut(JSON.stringify(data, null, 2));
+      const data = await res.json();
+      setOut(JSON.stringify(data, null, 2));
 
-    if (data.game) {
-      setPostResults(
-        (Array.isArray(data.game) ? data.game : [data.game]).map((g: any) => ({
-          id: g.id,
-          game_name: g.game_name,
-          category: g.category,
-          price: g.price,
-          description: g.description,
-          image_url: g.image_url,
-        }))
-      );
-      setGamesData([]);
-    } else {
+      if (data.game) {
+        // ✅ SAFE data mapping with platform validation
+        const results = Array.isArray(data.game) ? data.game : [data.game];
+        setPostResults(
+          results.map((g: any) => ({
+            id: g.id || 0,
+            game_name: g.game_name || "Untitled Game",
+            category: g.category || "Uncategorized",
+            price: typeof g.price === 'number' ? g.price : 0,
+            description: g.description || "",
+            image_url: g.image_url,
+            platform: g.platform || "Unknown Platform",
+          }))
+        );
+        setGamesData([]);
+      } else {
+        setPostResults([]);
+      }
+    } catch (error) {
+      console.error("POST request failed:", error);
+      setOut(JSON.stringify({ error: "POST request failed" }, null, 2));
       setPostResults([]);
     }
   }
@@ -176,7 +216,7 @@ export default function DocsPage() {
                     rows={4}
                     value={postBody}
                     onChange={(e) => setPostBody(e.target.value)}
-                    placeholder='{"query": "search"}'
+                    placeholder='{"postBody": "game name"}'
                   />
                 </div>
 
@@ -199,7 +239,7 @@ export default function DocsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
                     <Gamepad2 className="h-5 w-5 text-[#66C0F4]" />
-                    Game Database
+                    Game Database ({gamesData.length} games)
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -210,12 +250,21 @@ export default function DocsPage() {
                     >
                       <h3 className="text-lg font-bold text-[#66C0F4]">{game.game_name}</h3>
                       <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
+                      
+                      {/* ✅ SAFE PLATFORM DISPLAY */}
+                      <div className="flex items-center gap-2">
+                        {getPlatformIcon(game.platform)}
+                        <span className="text-sm font-medium text-[#C7D5E0]">
+                          {getPlatformDisplay(game.platform)}
+                        </span>
+                      </div>
+
                       <p className="text-sm text-[#C7D5E0]">
                         <span className="font-semibold text-[#90BA3C]">Category:</span>{" "}
                         {game.category}
                       </p>
                       <p className="text-sm text-[#C7D5E0]">
-                        <span className="font-semibold text-[#90BA3C]">Price:</span> ₱{game.price}
+                        <span className="font-semibold text-[#90BA3C]">Price:</span> ${game.price}
                       </p>
                       <p className="text-sm text-[#C7D5E0]">
                         <span className="font-semibold text-[#90BA3C]">Description:</span>{" "}
@@ -226,6 +275,9 @@ export default function DocsPage() {
                           src={game.image_url}
                           alt={game.game_name}
                           className="mt-3 rounded-lg w-full h-40 object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/placeholder.png";
+                          }}
                         />
                       )}
                     </div>
@@ -240,7 +292,7 @@ export default function DocsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl font-bold text-white">
                     <Code className="h-5 w-5 text-[#90BA3C]" />
-                    Search Results
+                    Search Results ({postResults.length} games)
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -251,12 +303,21 @@ export default function DocsPage() {
                     >
                       <h3 className="text-lg font-bold text-[#90BA3C]">{game.game_name}</h3>
                       <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
+                      
+                      {/* ✅ SAFE PLATFORM DISPLAY */}
+                      <div className="flex items-center gap-2">
+                        {getPlatformIcon(game.platform)}
+                        <span className="text-sm font-medium text-[#C7D5E0]">
+                          {getPlatformDisplay(game.platform)}
+                        </span>
+                      </div>
+
                       <p className="text-sm text-[#C7D5E0]">
                         <span className="font-semibold text-[#66C0F4]">Category:</span>{" "}
                         {game.category}
                       </p>
                       <p className="text-sm text-[#C7D5E0]">
-                        <span className="font-semibold text-[#66C0F4]">Price:</span> ₱{game.price}
+                        <span className="font-semibold text-[#66C0F4]">Price:</span> ${game.price}
                       </p>
                       <p className="text-sm text-[#C7D5E0]">
                         <span className="font-semibold text-[#66C0F4]">Description:</span>{" "}
@@ -267,6 +328,9 @@ export default function DocsPage() {
                           src={game.image_url}
                           alt={game.game_name}
                           className="mt-3 rounded-lg w-full h-40 object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/placeholder.png";
+                          }}
                         />
                       )}
                     </div>

@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 🧩 Fetch all games
+    // 🧩 Fetch all games - INCLUDING PLATFORM FIELD
     const allGames = await db
       .select({
         id: heroes.id,
@@ -41,7 +41,9 @@ export async function GET(req: NextRequest) {
         category: heroes.category,
         price: heroes.price,
         description: heroes.description,
-        image_url: heroes.imageUrl, 
+        image_url: heroes.imageUrl,
+        platform: heroes.platform, // ✅ ADDED THIS LINE
+        user_id: heroes.userId, // ✅ Also added user_id for completeness
       })
       .from(heroes);
 

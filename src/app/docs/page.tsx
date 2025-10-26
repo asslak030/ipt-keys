@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { Gamepad2, BookOpen, Terminal, ArrowLeft, Code, Server, Monitor, Gamepad, Joystick } from "lucide-react";
+import { Gamepad2, BookOpen, Terminal, ArrowLeft, Code, Server, Monitor, Gamepad, Joystick, DollarSign } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import AuthGuard from "../component/AuthGuard";
@@ -67,21 +67,39 @@ export default function DocsPage() {
       const data = await res.json();
       setOut(JSON.stringify(data, null, 2));
 
+      console.log("GET Response:", data); // Debug log
+
       if (data.data) {
-        // ✅ SAFE data mapping with platform validation
-        setGamesData(
-          data.data.map((g: any) => ({
-            id: g.id || 0,
-            game_name: g.game_name || "Untitled Game",
-            category: g.category || "Uncategorized",
-            price: typeof g.price === 'number' ? g.price : 0,
-            description: g.description || "",
-            image_url: g.image_url,
+        // ✅ IMPROVED data mapping with better price extraction
+        const mappedGames = data.data.map((g: any) => {
+          // Try different possible price fields
+          let price = 0;
+          if (typeof g.price === 'number') {
+            price = g.price;
+          } else if (typeof g.price === 'string') {
+            price = parseFloat(g.price) || 0;
+          } else if (typeof g.game_price === 'number') {
+            price = g.game_price;
+          } else if (typeof g.game_price === 'string') {
+            price = parseFloat(g.game_price) || 0;
+          }
+
+          return {
+            id: g.id || g.game_id || 0,
+            game_name: g.game_name || g.name || g.title || "Untitled Game",
+            category: g.category || g.genre || "Uncategorized",
+            price: price,
+            description: g.description || g.desc || "",
+            image_url: g.image_url || g.image || g.cover_image,
             platform: g.platform || "Unknown Platform",
-          }))
-        );
+          };
+        });
+
+        console.log("Mapped Games:", mappedGames); // Debug log
+        setGamesData(mappedGames);
         setPostResults([]);
       } else {
+        console.log("No data found in response");
         setGamesData([]);
       }
     } catch (error) {
@@ -103,22 +121,42 @@ export default function DocsPage() {
       const data = await res.json();
       setOut(JSON.stringify(data, null, 2));
 
-      if (data.game) {
-        // ✅ SAFE data mapping with platform validation
-        const results = Array.isArray(data.game) ? data.game : [data.game];
-        setPostResults(
-          results.map((g: any) => ({
-            id: g.id || 0,
-            game_name: g.game_name || "Untitled Game",
-            category: g.category || "Uncategorized",
-            price: typeof g.price === 'number' ? g.price : 0,
-            description: g.description || "",
-            image_url: g.image_url,
+      console.log("POST Response:", data); // Debug log
+
+      if (data.game || data.games) {
+        // ✅ IMPROVED data mapping for POST results
+        const results = data.game || data.games || [];
+        const gameArray = Array.isArray(results) ? results : [results];
+        
+        const mappedResults = gameArray.map((g: any) => {
+          // Try different possible price fields
+          let price = 0;
+          if (typeof g.price === 'number') {
+            price = g.price;
+          } else if (typeof g.price === 'string') {
+            price = parseFloat(g.price) || 0;
+          } else if (typeof g.game_price === 'number') {
+            price = g.game_price;
+          } else if (typeof g.game_price === 'string') {
+            price = parseFloat(g.game_price) || 0;
+          }
+
+          return {
+            id: g.id || g.game_id || Date.now(), // Use timestamp as fallback ID
+            game_name: g.game_name || g.name || g.title || "Untitled Game",
+            category: g.category || g.genre || "Uncategorized",
+            price: price,
+            description: g.description || g.desc || "",
+            image_url: g.image_url || g.image || g.cover_image,
             platform: g.platform || "Unknown Platform",
-          }))
-        );
+          };
+        });
+
+        console.log("Mapped POST Results:", mappedResults); // Debug log
+        setPostResults(mappedResults);
         setGamesData([]);
       } else {
+        console.log("No game data found in POST response");
         setPostResults([]);
       }
     } catch (error) {
@@ -127,6 +165,12 @@ export default function DocsPage() {
       setPostResults([]);
     }
   }
+
+  // Helper function to format price display
+  const formatPrice = (price: number) => {
+    if (price === 0) return "Free";
+    return `$${price.toFixed(2)}`;
+  };
 
   return (
     <AuthGuard>
@@ -222,13 +266,17 @@ export default function DocsPage() {
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-[#C7D5E0]">Response</Label>
-                  <Textarea
-                    className="border-[#4C6B8A] bg-[#171D25] font-mono text-sm text-white"
-                    rows={8}
-                    readOnly
-                    value={out}
-                    placeholder="API response will appear here..."
-                  />
+                  <div className="relative">
+                    <Textarea
+                      className="border-[#4C6B8A] bg-[#171D25] font-mono text-sm text-white h-64 resize-none"
+                      readOnly
+                      value={out}
+                      placeholder="API response will appear here..."
+                    />
+                    <div className="absolute bottom-2 right-2 text-xs text-[#8F98A0]">
+                      Scrollable
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -242,46 +290,59 @@ export default function DocsPage() {
                     Game Database ({gamesData.length} games)
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {gamesData.map((game) => (
-                    <div
-                      key={game.id}
-                      className="flex flex-col gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 hover:border-[#66C0F4] transition-colors"
-                    >
-                      <h3 className="text-lg font-bold text-[#66C0F4]">{game.game_name}</h3>
-                      <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
-                      
-                      {/* ✅ SAFE PLATFORM DISPLAY */}
-                      <div className="flex items-center gap-2">
-                        {getPlatformIcon(game.platform)}
-                        <span className="text-sm font-medium text-[#C7D5E0]">
-                          {getPlatformDisplay(game.platform)}
-                        </span>
-                      </div>
+                <CardContent>
+                  <div className="max-h-96 overflow-y-auto pr-2 space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {gamesData.map((game) => (
+                        <div
+                          key={game.id}
+                          className="flex flex-col gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 hover:border-[#66C0F4] transition-colors"
+                        >
+                          <h3 className="text-lg font-bold text-[#66C0F4]">{game.game_name}</h3>
+                          <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
+                          
+                          {/* ✅ SAFE PLATFORM DISPLAY */}
+                          <div className="flex items-center gap-2">
+                            {getPlatformIcon(game.platform)}
+                            <span className="text-sm font-medium text-[#C7D5E0]">
+                              {getPlatformDisplay(game.platform)}
+                            </span>
+                          </div>
 
-                      <p className="text-sm text-[#C7D5E0]">
-                        <span className="font-semibold text-[#90BA3C]">Category:</span>{" "}
-                        {game.category}
-                      </p>
-                      <p className="text-sm text-[#C7D5E0]">
-                        <span className="font-semibold text-[#90BA3C]">Price:</span> ${game.price}
-                      </p>
-                      <p className="text-sm text-[#C7D5E0]">
-                        <span className="font-semibold text-[#90BA3C]">Description:</span>{" "}
-                        {game.description}
-                      </p>
-                      {game.image_url && (
-                        <img
-                          src={game.image_url}
-                          alt={game.game_name}
-                          className="mt-3 rounded-lg w-full h-40 object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "/placeholder.png";
-                          }}
-                        />
-                      )}
+                          <p className="text-sm text-[#C7D5E0]">
+                            <span className="font-semibold text-[#90BA3C]">Category:</span>{" "}
+                            {game.category}
+                          </p>
+                          
+                          {/* ✅ IMPROVED PRICE DISPLAY */}
+                          <div className="flex items-center gap-2">
+                            <DollarSign size={14} className={game.price === 0 ? "text-gray-400" : "text-green-400"} />
+                            <span className={`text-sm font-semibold ${
+                              game.price === 0 ? "text-gray-400" : "text-green-400"
+                            }`}>
+                              {formatPrice(game.price)}
+                            </span>
+                          </div>
+
+                          <p className="text-sm text-[#C7D5E0] line-clamp-3">
+                            <span className="font-semibold text-[#90BA3C]">Description:</span>{" "}
+                            {game.description}
+                          </p>
+                          
+                          {game.image_url && (
+                            <img
+                              src={game.image_url}
+                              alt={game.game_name}
+                              className="mt-3 rounded-lg w-full h-40 object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/placeholder.png";
+                              }}
+                            />
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -295,46 +356,59 @@ export default function DocsPage() {
                     Search Results ({postResults.length} games)
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {postResults.map((game) => (
-                    <div
-                      key={game.id}
-                      className="flex flex-col gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 hover:border-[#90BA3C] transition-colors"
-                    >
-                      <h3 className="text-lg font-bold text-[#90BA3C]">{game.game_name}</h3>
-                      <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
-                      
-                      {/* ✅ SAFE PLATFORM DISPLAY */}
-                      <div className="flex items-center gap-2">
-                        {getPlatformIcon(game.platform)}
-                        <span className="text-sm font-medium text-[#C7D5E0]">
-                          {getPlatformDisplay(game.platform)}
-                        </span>
-                      </div>
+                <CardContent>
+                  <div className="max-h-96 overflow-y-auto pr-2 space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {postResults.map((game) => (
+                        <div
+                          key={game.id}
+                          className="flex flex-col gap-3 rounded-lg border border-[#4C6B8A] bg-[#171D25] p-4 hover:border-[#90BA3C] transition-colors"
+                        >
+                          <h3 className="text-lg font-bold text-[#90BA3C]">{game.game_name}</h3>
+                          <p className="text-xs text-[#8F98A0]">ID: {game.id}</p>
+                          
+                          {/* ✅ SAFE PLATFORM DISPLAY */}
+                          <div className="flex items-center gap-2">
+                            {getPlatformIcon(game.platform)}
+                            <span className="text-sm font-medium text-[#C7D5E0]">
+                              {getPlatformDisplay(game.platform)}
+                            </span>
+                          </div>
 
-                      <p className="text-sm text-[#C7D5E0]">
-                        <span className="font-semibold text-[#66C0F4]">Category:</span>{" "}
-                        {game.category}
-                      </p>
-                      <p className="text-sm text-[#C7D5E0]">
-                        <span className="font-semibold text-[#66C0F4]">Price:</span> ${game.price}
-                      </p>
-                      <p className="text-sm text-[#C7D5E0]">
-                        <span className="font-semibold text-[#66C0F4]">Description:</span>{" "}
-                        {game.description}
-                      </p>
-                      {game.image_url && (
-                        <img
-                          src={game.image_url}
-                          alt={game.game_name}
-                          className="mt-3 rounded-lg w-full h-40 object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "/placeholder.png";
-                          }}
-                        />
-                      )}
+                          <p className="text-sm text-[#C7D5E0]">
+                            <span className="font-semibold text-[#66C0F4]">Category:</span>{" "}
+                            {game.category}
+                          </p>
+                          
+                          {/* ✅ IMPROVED PRICE DISPLAY */}
+                          <div className="flex items-center gap-2">
+                            <DollarSign size={14} className={game.price === 0 ? "text-gray-400" : "text-green-400"} />
+                            <span className={`text-sm font-semibold ${
+                              game.price === 0 ? "text-gray-400" : "text-green-400"
+                            }`}>
+                              {formatPrice(game.price)}
+                            </span>
+                          </div>
+
+                          <p className="text-sm text-[#C7D5E0] line-clamp-3">
+                            <span className="font-semibold text-[#66C0F4]">Description:</span>{" "}
+                            {game.description}
+                          </p>
+                          
+                          {game.image_url && (
+                            <img
+                              src={game.image_url}
+                              alt={game.game_name}
+                              className="mt-3 rounded-lg w-full h-40 object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/placeholder.png";
+                              }}
+                            />
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </CardContent>
               </Card>
             )}
